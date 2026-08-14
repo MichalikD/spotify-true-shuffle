@@ -256,6 +256,7 @@ Added and expanded documentation for:
 * Added Scriptable staging and backup before production deployment.
 * Changed Apple Shortcut installation to a manifest-driven GitHub Pages workflow.
 * Reorganized project documentation around stable responsibility boundaries.
+* Removed the hardcoded Spotify Client ID from the GitHub Pages authentication flow. Spotify Login now passes the configured Client ID dynamically, allowing each installation or fork to use its own Spotify Developer application.
 
 ---
 

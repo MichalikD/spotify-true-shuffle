@@ -171,22 +171,97 @@ The engine never receives raw Spotify responses.
 
 # Validation Pipeline
 
-The Validation module guarantees
+Validation is performed at multiple points in the engine pipeline.
 
-- valid configuration
-- valid track list
-- valid shuffle mode
-- valid output
+The common Validation module currently verifies:
 
-Validation should always fail before algorithm execution.
+* The input track collection
+* The shuffled track result
+* The final engine output
+
+The engine itself is responsible for mode dispatch and rejects unsupported shuffle modes.
+
+Conceptually:
+
+```text
+Input Tracks
+     │
+     ▼
+Validation
+     │
+     ▼
+Shuffle Mode
+     │
+     ▼
+Algorithm
+     │
+     ▼
+Shuffled Tracks
+     │
+     ▼
+Validation
+     │
+     ▼
+Output Generation
+     │
+     ▼
+Output Validation
+```
+
+Validation should fail as close as possible to the source of invalid data.
 
 ---
 
 > 💡 **Design Note**
 >
-> Every shuffle module may assume valid input.
+> Common structural validation is intentionally centralized.
 >
-> Validation is intentionally centralized.
+> Mode-specific validation may remain with the component that owns the corresponding behavior.
+
+---
+
+# Shuffle Mode Selection
+
+The Engine selects exactly one shuffle strategy.
+
+Current modes:
+
+```text
+random
+artist
+album
+balanced
+```
+
+Dedicated algorithm modules currently exist for:
+
+```text
+artist
+album
+balanced
+```
+
+Random mode is intentionally lightweight and uses the shared Fisher-Yates implementation from `Spotify Shuffle Common.js` directly.
+
+Conceptually:
+
+```text
+shuffle_mode
+    │
+    ├── random
+    │     └── Common / Fisher-Yates
+    │
+    ├── artist
+    │     └── Artist Module
+    │
+    ├── album
+    │     └── Album Module
+    │
+    └── balanced
+          └── Balanced Module
+```
+
+Future complex shuffle modes should normally be implemented as dedicated modules rather than adding substantial algorithm logic to the main Engine.
 
 ---
 

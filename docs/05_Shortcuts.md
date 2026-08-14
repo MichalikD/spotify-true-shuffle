@@ -655,8 +655,18 @@ Start Spotify authentication.
 ## Responsibilities
 
 - load Spotify authentication configuration
-- open the project GitHub Pages authentication entry point
+- validate the configured Spotify Client ID
+- validate the configured Redirect URI
+- URL-encode the Client ID
+- open the configured Redirect URI with the Client ID as a query parameter
 - initiate the browser-based PKCE flow
+
+Conceptually:
+
+```text
+[spotify_redirect_uri]?client_id=[spotify_client_id]
+```
+The authentication page derives its Redirect URI from its own location and does not contain a hardcoded Client ID.
 
 ---
 

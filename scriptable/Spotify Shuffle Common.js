@@ -7,7 +7,7 @@ function parseInput(value) {
       return JSON.parse(value);
     } catch (error) {
       throw new Error(
-        "Die Eingabe der Shuffle Engine ist kein gültiges JSON."
+        "The input to the Shuffle Engine is not valid JSON."
       );
     }
   }

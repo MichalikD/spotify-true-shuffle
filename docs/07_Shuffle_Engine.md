@@ -36,17 +36,13 @@ It only operates on validated input.
 
 The engine follows several design principles.
 
-## Deterministic
+## Controlled Randomness
 
-Given identical
+The engine intentionally combines deterministic scoring rules with randomness.
 
-- configuration
-- playlist
-- shuffle mode
+Identical playlist and configuration inputs may therefore produce different valid playback orders.
 
-the engine should always produce reproducible behaviour.
-
-Randomness is intentionally controlled.
+Randomness is used deliberately to avoid making intelligent shuffle modes predictable while structural and scoring rules continue to guide selection.
 
 ---
 
@@ -262,28 +258,6 @@ shuffle_mode
 ```
 
 Future complex shuffle modes should normally be implemented as dedicated modules rather than adding substantial algorithm logic to the main Engine.
-
----
-
-# Shuffle Mode Selection
-
-The Engine selects exactly one module.
-
-Current modes
-
-```text
-random
-
-artist
-
-album
-
-balanced
-```
-
-Future modes should be added here.
-
-The Engine itself should not contain algorithm logic.
 
 ---
 

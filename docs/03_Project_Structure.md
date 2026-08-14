@@ -136,6 +136,17 @@ Conceptually:
 <redirect_uri>?client_id=<spotify_client_id>
 ```
 
+The page:
+
+1. reads the Client ID from the request
+2. derives the Redirect URI from its own location
+3. generates the PKCE verifier and challenge
+4. redirects the user to Spotify authorization
+5. receives Spotify's authorization callback
+6. returns the authorization code and PKCE verifier to Spotify Login Callback
+
+This allows the same authentication page to be used with different Spotify Developer applications and forked deployments.
+
 ---
 
 ## install.html

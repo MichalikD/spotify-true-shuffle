@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Spotify True Shuffle Installer</title>
+
+  <style>
+    :root {
+      color-scheme: light dark;
+
+      --background: #f5f5f7;
+      --card: #ffffff;
+      --text: #1d1d1f;
+      --secondary: #6e6e73;
+      --border: #d2d2d7;
+      --button: #007aff;
+      --button-text: #ffffff;
+      --success: #248a3d;
+      --warning: #b25000;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #000000;
+        --card: #1c1c1e;
+        --text: #f5f5f7;
+        --secondary: #98989d;
+        --border: #38383a;
+        --button: #0a84ff;
+        --button-text: #ffffff;
+        --success: #30d158;
+        --warning: #ff9f0a;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 16px 48px;
+      background: var(--background);
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Text",
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      line-height: 1.15;
+    }
+
+    h2 {
+      margin-top: 32px;
+      margin-bottom: 12px;
+      font-size: 22px;
+    }
+
+    p {
+      line-height: 1.5;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--secondary);
+    }
+
+    .info,
+    .status {
+      padding: 16px;
+      margin: 20px 0;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card);
+    }
+
+    .status {
+      color: var(--secondary);
+    }
+
+    .status.error {
+      color: #ff453a;
+    }
+
+    .shortcut-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .shortcut {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card);
+    }
+
+    .shortcut-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .shortcut-name {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .shortcut-version {
+      color: var(--secondary);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .install-button {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--button);
+      color: var(--button-text);
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .install-button.opened {
+      background: var(--success);
+    }
+
+    .install-button.unavailable {
+      background: var(--secondary);
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .required {
+      margin-top: 8px;
+      color: var(--secondary);
+      font-size: 13px;
+    }
+
+    .warning {
+      color: var(--warning);
+    }
+
+    .progress {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+    }
+
+    .progress-line {
+      margin-bottom: 12px;
+    }
+
+    .reset-button {
+      border: 0;
+      background: none;
+      padding: 0;
+      color: var(--button);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    footer {
+      margin-top: 36px;
+      color: var(--secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+
+    <header>
+      <h1 id="project-name">
+        Spotify True Shuffle
+      </h1>
+
+      <p class="subtitle">
+        Apple Shortcut Installation
+      </p>
+    </header>
+
+    <section class="info">
+      <strong>Installation instructions</strong>
+
+      <p>
+        Install every shortcut listed below.
+        Each button opens Apple's official iCloud
+        Shortcut page.
+      </p>
+
+      <p>
+        After installing a shortcut, return to this
+        page and continue with the next one.
+      </p>
+
+      <p>
+        When all shortcuts are installed, return to
+        the Shortcuts app and run
+        <strong>Spotify True Shuffle Installer</strong>
+        again.
+      </p>
+    </section>
+
+    <div id="status" class="status">
+      Loading installation manifest…
+    </div>
+
+    <div id="progress" class="progress" hidden>
+      <div class="progress-line">
+        Opened:
+        <strong>
+          <span id="opened-count">0</span>
+          /
+          <span id="shortcut-count">0</span>
+        </strong>
+      </div>
+
+      <button
+        id="reset-progress"
+        class="reset-button"
+        type="button"
+      >
+        Reset page progress
+      </button>
+    </div>
+
+    <h2>Required Shortcuts</h2>
+
+    <section
+      id="shortcut-list"
+      class="shortcut-list"
+    ></section>
+
+    <footer>
+      <p>
+        The "Opened" state only tracks whether an
+        installation link was opened from this page.
+        It does not verify that the shortcut was
+        actually installed.
+      </p>
+
+      <p>
+        The Spotify True Shuffle Installer performs
+        the final installation verification after you
+        return to the Shortcuts app.
+      </p>
+    </footer>
+
+  </main>
+
+  <script>
+    const MANIFEST_URL = "./manifest.json";
+
+    const projectNameElement =
+      document.getElementById("project-name");
+
+    const statusElement =
+      document.getElementById("status");
+
+    const shortcutListElement =
+      document.getElementById("shortcut-list");
+
+    const progressElement =
+      document.getElementById("progress");
+
+    const openedCountElement =
+      document.getElementById("opened-count");
+
+    const shortcutCountElement =
+      document.getElementById("shortcut-count");
+
+    const resetProgressButton =
+      document.getElementById("reset-progress");
+
+    let shortcuts = [];
+    let storageKey = null;
+
+    function getOpenedShortcuts() {
+      if (!storageKey) {
+        return new Set();
+      }
+
+      try {
+        const stored =
+          JSON.parse(
+            localStorage.getItem(storageKey) || "[]"
+          );
+
+        return new Set(stored);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function saveOpenedShortcuts(opened) {
+      if (!storageKey) {
+        return;
+      }
+
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify([...opened])
+      );
+    }
+
+    function updateProgress() {
+      const opened = getOpenedShortcuts();
+
+      const relevantOpened =
+        shortcuts.filter(
+          shortcut => opened.has(shortcut.id)
+        ).length;
+
+      openedCountElement.textContent =
+        relevantOpened;
+
+      shortcutCountElement.textContent =
+        shortcuts.length;
+    }
+
+    function isValidICloudUrl(url) {
+      if (
+        typeof url !== "string" ||
+        url.length === 0
+      ) {
+        return false;
+      }
+
+      if (
+        url.includes("SHORTCUT_ID")
+      ) {
+        return false;
+      }
+
+      try {
+        const parsed = new URL(url);
+
+        return (
+          parsed.protocol === "https:" &&
+          parsed.hostname === "www.icloud.com" &&
+          parsed.pathname.startsWith("/shortcuts/")
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    function markOpened(
+      shortcut,
+      button
+    ) {
+      const opened =
+        getOpenedShortcuts();
+
+      opened.add(shortcut.id);
+
+      saveOpenedShortcuts(opened);
+
+      button.classList.add("opened");
+      button.textContent = "Opened ✓";
+
+      updateProgress();
+    }
+
+    function renderShortcuts() {
+      shortcutListElement.innerHTML = "";
+
+      const opened =
+        getOpenedShortcuts();
+
+      for (const shortcut of shortcuts) {
+        const card =
+          document.createElement("article");
+
+        card.className = "shortcut";
+
+        const header =
+          document.createElement("div");
+
+        header.className =
+          "shortcut-header";
+
+        const name =
+          document.createElement("h3");
+
+        name.className =
+          "shortcut-name";
+
+        name.textContent =
+          shortcut.name;
+
+        const version =
+          document.createElement("span");
+
+        version.className =
+          "shortcut-version";
+
+        version.textContent =
+          `v${shortcut.version}`;
+
+        header.appendChild(name);
+        header.appendChild(version);
+
+        const button =
+          document.createElement("a");
+
+        button.className =
+          "install-button";
+
+        const validUrl =
+          isValidICloudUrl(
+            shortcut.icloud_url
+          );
+
+        if (validUrl) {
+          button.href =
+            shortcut.icloud_url;
+
+          if (
+            opened.has(shortcut.id)
+          ) {
+            button.classList.add(
+              "opened"
+            );
+
+            button.textContent =
+              "Opened ✓";
+          } else {
+            button.textContent =
+              "Install Shortcut";
+          }
+
+          button.addEventListener(
+            "click",
+            () => {
+              markOpened(
+                shortcut,
+                button
+              );
+            }
+          );
+        } else {
+          button.classList.add(
+            "unavailable"
+          );
+
+          button.textContent =
+            "Link unavailable";
+        }
+
+        const required =
+          document.createElement("div");
+
+        required.className =
+          "required";
+
+        required.textContent =
+          shortcut.required
+            ? "Required component"
+            : "Optional component";
+
+        card.appendChild(header);
+        card.appendChild(button);
+        card.appendChild(required);
+
+        shortcutListElement.appendChild(
+          card
+        );
+      }
+
+      updateProgress();
+      progressElement.hidden = false;
+    }
+
+    async function loadManifest() {
+      try {
+        const response =
+          await fetch(
+            MANIFEST_URL,
+            {
+              cache: "no-store"
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            `HTTP ${response.status}`
+          );
+        }
+
+        const manifest =
+          await response.json();
+
+        if (
+          manifest.manifest_version !== 1
+        ) {
+          throw new Error(
+            "Unsupported manifest version."
+          );
+        }
+
+        if (
+          !manifest.project ||
+          !Array.isArray(
+            manifest.shortcuts
+          )
+        ) {
+          throw new Error(
+            "Invalid manifest structure."
+          );
+        }
+
+        projectNameElement.textContent =
+          manifest.project.name;
+
+        shortcuts =
+          manifest.shortcuts
+            .filter(
+              shortcut =>
+                shortcut.required !== false
+            )
+            .sort(
+              (a, b) =>
+                (a.install_order || 0) -
+                (b.install_order || 0)
+            );
+
+        storageKey =
+          `spotify-true-shuffle-install-${manifest.project.version}`;
+
+        statusElement.textContent =
+          `${manifest.project.name} ${manifest.project.version} (${manifest.project.channel}) — ${shortcuts.length} shortcuts`;
+
+        renderShortcuts();
+
+      } catch (error) {
+        console.error(error);
+
+        statusElement.classList.add(
+          "error"
+        );
+
+        statusElement.textContent =
+          "The installation manifest could not be loaded. Please try again later.";
+      }
+    }
+
+    resetProgressButton.addEventListener(
+      "click",
+      () => {
+        if (!storageKey) {
+          return;
+        }
+
+        localStorage.removeItem(
+          storageKey
+        );
+
+        renderShortcuts();
+      }
+    );
+
+    loadManifest();
+  </script>
+</body>
+</html>

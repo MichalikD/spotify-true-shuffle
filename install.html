@@ -311,6 +311,21 @@
     const resetProgressButton =
       document.getElementById("reset-progress");
 
+    const params = new URLSearchParams(window.location.search);
+
+    const missingParam = params.get("missing");
+    
+    let missingIds = null;
+    
+    if (missingParam) {
+      missingIds = new Set(
+        missingParam
+          .split(",")
+          .map(id => id.trim())
+          .filter(Boolean)
+      );
+    }
+
     let shortcuts = [];
     let storageKey = null;
 
@@ -554,15 +569,44 @@
 
         shortcuts =
           manifest.shortcuts
-            .filter(
-              shortcut =>
-                shortcut.required !== false
-            )
+            .filter(shortcut => {
+              if (shortcut.required === false) {
+                return false;
+              }
+        
+              if (
+                missingIds &&
+                !missingIds.has(shortcut.id)
+              ) {
+                return false;
+              }
+        
+              return true;
+            })
             .sort(
               (a, b) =>
                 (a.install_order || 0) -
                 (b.install_order || 0)
             );
+
+        if (missingIds) {
+          statusElement.textContent =
+            `${shortcuts.length} missing shortcut${shortcuts.length === 1 ? "" : "s"} to install`;
+        } else {
+          statusElement.textContent =
+            `${manifest.project.name} ${manifest.project.version} (${manifest.project.channel}) — ${shortcuts.length} shortcuts`;
+        }
+
+        if (missingIds && shortcuts.length === 0) {
+          statusElement.classList.add("error");
+        
+          statusElement.textContent =
+            "No matching shortcuts were found in the installation manifest.";
+        
+          progressElement.hidden = true;
+        
+          return;
+        }
 
         storageKey =
           `spotify-true-shuffle-install-${manifest.project.version}`;

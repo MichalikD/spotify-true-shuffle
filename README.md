@@ -1,377 +1,407 @@
-────────────────────────────────────────────
-
-Spotify True Shuffle
-
-A modular shuffle framework for Spotify
-built with Apple Shortcuts and Scriptable
-
-────────────────────────────────────────────
-
 # Spotify True Shuffle
 
 > A modular Spotify shuffle framework built with Apple Shortcuts and Scriptable.
 
-Spotify True Shuffle replaces Spotify's built-in shuffle with a fully customizable shuffle engine.
+Spotify True Shuffle generates the playback order **before Spotify starts playing it**.
 
-Instead of relying on Spotify's playback algorithm, playlists are analyzed, reordered using configurable shuffle strategies and written to a dedicated cache playlist before playback starts.
+Instead of relying on Spotify's native shuffle, the project:
 
-The project is designed around a modular architecture, making it easy to extend with additional shuffle algorithms while keeping Apple Shortcuts and Scriptable cleanly separated.
+1. Loads the complete source playlist
+2. Normalizes its tracks
+3. Generates a new order using a configurable shuffle strategy
+4. Writes that order to a dedicated cache playlist
+5. Starts Spotify playback from the generated order
 
----
+The project combines Apple Shortcuts for orchestration and Spotify integration with a modular Scriptable shuffle engine.
 
-![Architecture](docs/images/architecture.png)
-
-*Placeholder – Overall project architecture*
+> **Project status:** Beta
 
 ---
 
 # Features
 
-- Completely replaces Spotify's default shuffle
-- Multiple shuffle algorithms
-  - Random
-  - Artist Shuffle
-  - Album Shuffle
-  - Balanced Shuffle
-- Modular Scriptable engine
-- Modular Apple Shortcuts workflow
-- Configuration system
-- Playlist management
-- Automatic Spotify authentication using PKCE
-- Automatic access token refresh
-- Built-in debugging
-- Centralized Spotify API module
-- Designed for future expansion
+* Multiple shuffle strategies
+
+  * Random
+  * Artist
+  * Album
+  * Balanced
+* Modular Scriptable shuffle engine
+* Modular Apple Shortcuts runtime
+* Spotify Web API integration
+* Authorization Code with PKCE
+* Automatic access-token refresh
+* Playlist pagination
+* Dedicated cache playlist
+* Saved playlist library
+* Central configuration
+* Debug output
+* Guided installer
+* Manifest-driven component distribution
+* Scriptable staging and backups
+* Extensible architecture for future shuffle modes
 
 ---
 
-# Why?
+# Shuffle Modes
 
-Spotify's built-in shuffle often groups tracks from the same artist or album together.
+| Mode         | Description                                                    |
+| ------------ | -------------------------------------------------------------- |
+| **Random**   | Unbiased Fisher-Yates shuffle                                  |
+| **Artist**   | Attempts to distribute tracks from the same artist more evenly |
+| **Album**    | Attempts to distribute tracks from the same album more evenly  |
+| **Balanced** | Combines artist and album distribution using weighted scoring  |
 
-Spotify True Shuffle allows complete control over the playback order.
+Artist, Album and Balanced use heuristic scheduling, scoring and controlled randomness.
 
-Examples include:
-
-- separating songs from the same artist
-- separating songs from the same album
-- balancing artist and album distribution simultaneously
-- implementing completely new shuffle strategies
-
-The shuffle engine is entirely independent from Spotify's own algorithm.
+They aim to produce better practical distribution without making every run deterministic.
 
 ---
 
-# Project Overview
+# How It Works
 
-The project consists of two parts.
-
-## Apple Shortcuts
-
-Responsible for
-
-- user interaction
-- Spotify authentication
-- API communication
-- playlist loading
-- playlist writing
-- configuration management
-
-## Scriptable
-
-Responsible for
-
-- shuffle algorithms
-- validation
-- output generation
-- debugging
-- engine logic
-
-Keeping both responsibilities separated makes the project easier to maintain and extend.
-
----
-
-# Current Shuffle Modes
-
-| Mode | Description |
-|-------|-------------|
-| Random | Fisher-Yates shuffle |
-| Artist | Distributes songs from the same artist |
-| Album | Distributes songs from the same album |
-| Balanced | Combines artist and album distribution using weighted scoring |
-
-More modes can easily be added thanks to the modular engine architecture.
-
----
-
-# Architecture
-
-```text
+```text id="8b7b9b"
 Spotify Playlist
-
-        │
-
-        ▼
-
+       │
+       ▼
 Playlist Loader
-
-        │
-
-        ▼
-
-Flatten Track List
-
-        │
-
-        ▼
-
-Shuffle Engine Shortcut
-
-        │
-
-        ▼
-
-Scriptable Engine
-
-        │
-
-        ▼
-
+       │
+       ▼
+Track Normalization
+       │
+       ▼
+Shuffle Engine
+       │
+       ▼
+Generated Track Order
+       │
+       ▼
 Playlist Writer
-
-        │
-
-        ▼
-
-Spotify API
-
-        │
-
-        ▼
-
-Spotify
+       │
+       ▼
+Cache Playlist
+       │
+       ▼
+Spotify Playback
 ```
 
-A detailed explanation can be found in:
+Apple Shortcuts handles:
 
-```
-docs/02_Architecture.md
-```
+* User interaction
+* Spotify authentication
+* Spotify Web API communication
+* Playlist loading
+* Playlist writing
+* Configuration
+* Playback
+* Installation
 
----
+Scriptable handles:
 
-# Project Structure
+* Track normalization
+* Shuffle algorithms
+* Scoring
+* Validation
+* Output generation
+* Debug information
 
-```
-Spotify True Shuffle
-│
-├── README.md
-├── LICENSE
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-│
-├── docs/
-│
-├── shortcuts/
-│
-├── scriptable/
-│
-└── config/
-```
+See:
 
-The complete project structure is documented in
+`docs/02_Architecture.md`
 
-```
-docs/03_Project_Structure.md
-```
-
----
-
-# Configuration
-
-The entire project is driven by a central configuration file.
-
-Examples:
-
-- Spotify Client ID
-- Redirect URI
-- Cache Playlist
-- Shuffle Mode
-- Debug Settings
-- Shuffle Parameters
-
-See
-
-```
-docs/04_Configuration.md
-```
-
----
-
-# Documentation
-
-## Installation
-
-```
-docs/01_Installation.md
-```
-
----
-
-## Architecture
-
-```
-docs/02_Architecture.md
-```
-
----
-
-## Project Structure
-
-```
-docs/03_Project_Structure.md
-```
-
----
-
-## Configuration
-
-```
-docs/04_Configuration.md
-```
-
----
-
-## Apple Shortcuts
-
-```
-docs/05_Shortcuts.md
-```
-
----
-
-## Scriptable Modules
-
-```
-docs/06_Scriptable.md
-```
-
----
-
-## Shuffle Engine
-
-```
-docs/07_Shuffle_Engine.md
-```
-
----
-
-## Development
-
-```
-docs/08_Development.md
-```
-
----
-
-## Troubleshooting
-
-```
-docs/09_Troubleshooting.md
-```
-
----
-
-## Known Issues
-
-```
-docs/10_Known_Issues.md
-```
-
----
-
-# Screenshots
-
-## Settings
-
-> Placeholder
-
----
-
-## Shuffle Menu
-
-> Placeholder
-
----
-
-## Debug Output
-
-> Placeholder
-
----
-
-## Engine Architecture
-
-> Placeholder
+for the complete architecture.
 
 ---
 
 # Requirements
 
-- iPhone / iPad
-- Apple Shortcuts
-- Scriptable
-- Spotify Premium
-- Spotify Developer Account
-- GitHub Pages
+* iPhone or iPad
+* Apple Shortcuts
+* Scriptable
+* iCloud Drive
+* Spotify Premium
+* Spotify Developer account
+
+Normal users do not need to create their own GitHub repository or GitHub Pages deployment.
+
+The project provides the required browser infrastructure.
 
 ---
 
-# Roadmap
+# Installation
 
-Current goals include
+Spotify True Shuffle uses a guided installer to automate as much setup as iOS currently allows.
 
-- additional shuffle modes
-- improved playback handling
-- enhanced playlist management
-- configurable shuffle presets
-- statistics
-- performance improvements
+The installer handles:
+
+* Local project directories
+* Scriptable module downloads
+* Scriptable staging
+* Backups of existing Scriptable modules
+* Scriptable deployment
+* Shortcut verification
+* Initial configuration
+* Initial playlist storage setup
+* Spotify authentication
+
+Apple requires shared Shortcuts to be manually confirmed during import.
+
+When Shortcut components are missing, the installer opens the project installation page and displays only the missing components.
+
+After installing them, run the installer again to continue setup.
+
+For the complete installation guide see:
+
+`docs/01_Installation.md`
+
+---
+
+# Configuration
+
+Spotify True Shuffle stores user configuration locally.
+
+The main persistent files are:
+
+```text id="g6qsv9"
+Shortcuts/
+└── Spotify True Shuffle/
+    └── Data/
+        ├── config.json
+        ├── playlists.json
+        └── tokens.json
+```
+
+Normal configuration is managed through:
+
+`Spotify Settings`
+
+Settings includes:
+
+* Spotify Client ID
+* Redirect URI
+* Cache playlist
+* Shuffle mode
+* Debug settings
+* Saved playlists
+
+Advanced algorithm defaults are stored in the configuration template.
+
+See:
+
+`docs/04_Configuration.md`
+
+---
+
+# Project Structure
+
+The repository contains:
+
+```text id="q2d6s2"
+spotify-true-shuffle/
+│
+├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── manifest.json
+│
+├── index.html
+├── install.html
+│
+├── config/
+├── scriptable/
+└── docs/
+```
+
+Apple Shortcut components are distributed using official iCloud Shortcut links referenced by:
+
+`manifest.json`
+
+See:
+
+`docs/03_Project_Structure.md`
+
+for the complete repository and local runtime structure.
+
+---
+
+# Installer and Distribution
+
+The project uses:
+
+`manifest.json`
+
+as the central source of distribution metadata.
+
+It describes:
+
+* Project version
+* Installer version
+* Required Apple Shortcuts
+* Shortcut versions
+* Shortcut iCloud links
+* Scriptable modules
+* Scriptable module versions
+* Download URLs
+* Configuration templates
+
+The guided Shortcut installation page:
+
+`install.html`
+
+reads the same manifest rather than maintaining another independent component catalog.
+
+This keeps distribution metadata centralized.
+
+---
+
+# Documentation
+
+| Document                  | Purpose                                |
+| ------------------------- | -------------------------------------- |
+| `01_Installation.md`      | Installation and initial setup         |
+| `02_Architecture.md`      | System architecture                    |
+| `03_Project_Structure.md` | Repository and local file structure    |
+| `04_Configuration.md`     | Configuration system                   |
+| `05_Shortcuts.md`         | Apple Shortcut components              |
+| `06_Scriptable.md`        | Scriptable module architecture         |
+| `07_Shuffle_Engine.md`    | Shuffle algorithms and engine behavior |
+| `08_Development.md`       | Development and release practices      |
+| `09_Troubleshooting.md`   | Troubleshooting                        |
+| `10_Known_Issues.md`      | Current limitations                    |
+| `11_Roadmap.md`           | Future direction                       |
+
+---
+
+# Current Architecture
+
+The runtime is intentionally modular.
+
+Examples:
+
+* `Spotify API` → Spotify communication
+* `Spotify Playlist Loader` → Playlist retrieval and pagination
+* `Spotify Playlist Writer` → Cache playlist updates
+* `Spotify Shuffle Engine` → Shortcuts / Scriptable bridge
+* `Spotify Settings` → User configuration
+
+Complex shuffle behavior belongs in Scriptable rather than directly inside Apple Shortcuts.
+
+This makes new shuffle modes easier to add without redesigning Spotify communication or playlist writing.
+
+---
+
+# Development Status
+
+Spotify True Shuffle is currently in beta.
+
+The present development focus is:
+
+* Complete distribution metadata
+* Verify the full fresh-install workflow
+* Test existing-installation behavior
+* Stabilize the current beta baseline
+* Build update/version-detection infrastructure
+* Continue shuffle-engine experimentation
+
+See:
+
+`docs/11_Roadmap.md`
+
+for longer-term development directions.
+
+---
+
+# Known Limitations
+
+Current limitations include:
+
+* Spotify playback context may occasionally lag behind a newly updated cache playlist
+* Spotify's UI may display stale playlist contents briefly
+* Apple Shortcut imports require manual confirmation
+* A fresh installation may require the installer to be run more than once
+* Shortcut component names currently need to remain unchanged
+* Automatic rollback is not yet implemented
+* A complete automatic update manager is not yet implemented
+
+See:
+
+`docs/10_Known_Issues.md`
+
+for details.
 
 ---
 
 # Contributing
 
-Contributions are welcome.
+Contributions, testing and feedback are welcome.
 
-Please read
+Before making structural changes, read:
 
-```
-CONTRIBUTING.md
-```
+* `CONTRIBUTING.md`
+* `docs/08_Development.md`
 
-before opening an issue or pull request.
+The project favors:
+
+* Focused components
+* Stable contracts
+* Centralized distribution metadata
+* User-data preservation
+* Targeted documentation updates
+* Backwards-compatible extensions where practical
 
 ---
 
-# License
+# Security
 
-This project is released under the MIT License.
+Never share or commit local authentication data such as:
 
-See
+* `tokens.json`
+* `verifier.txt`
 
-```
-LICENSE
-```
+Personal:
+
+* `config.json`
+* `playlists.json`
+
+should also remain outside the repository.
+
+Only the sanitized templates belong in:
+
+`config/`
+
+Spotify True Shuffle uses Authorization Code with PKCE and does not require a Spotify Client Secret.
+
+---
+
+# Roadmap
+
+Future development may include:
+
+* Additional shuffle modes
+* Component update detection
+* Automatic Scriptable updates
+* Configuration migrations
+* Integrity verification
+* Automatic rollback
+* Algorithm statistics
+* Regression testing
+* Shuffle benchmarks
+* User-experience improvements
+
+Longer-term exploration may also include a standalone application, but the Apple Shortcuts + Scriptable architecture remains the current runtime.
+
+See:
+
+`docs/11_Roadmap.md`
 
 ---
 
 # Acknowledgements
 
-This project was built using
+Spotify True Shuffle is built with:
 
-- Apple Shortcuts
-- Scriptable
-- Spotify Web API
+* Apple Shortcuts
+* Scriptable
+* Spotify Web API
 
-Special thanks to OpenAI for assisting throughout the design, architecture and implementation of the project.
+OpenAI tools were used during design, development, debugging and documentation of the project.

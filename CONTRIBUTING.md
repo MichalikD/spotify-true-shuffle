@@ -22,7 +22,8 @@ Spotify True Shuffle aims to remain
 
 - modular
 - maintainable
-- deterministic
+- predictable in structure
+- intentionally randomized in output
 - well documented
 
 Please keep these principles in mind when contributing.

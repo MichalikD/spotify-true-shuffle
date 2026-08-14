@@ -48,7 +48,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 120,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/af757244ee394eb2b77b8e19225c7bc4"
     },
     {
       "id": "spotify_api",
@@ -64,7 +64,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 20,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/e8e661f0591b4e21934ee6621eab06d1"
     },
     {
       "id": "spotify_login",
@@ -72,7 +72,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 50,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/74e90658d41c4689b382061989a3f8af"
     },
     {
       "id": "spotify_login_callback",
@@ -80,7 +80,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 60,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/ed8d9253df6e460a81603b6c078da4f9"
     },
     {
       "id": "spotify_refresh_token",
@@ -88,7 +88,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 40,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/c5881c053fed42a0843c086b86afcdf4"
     },
     {
       "id": "spotify_settings",
@@ -96,7 +96,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 150,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/e142d753667e468093cd003a126940f7"
     },
     {
       "id": "spotify_load_config",
@@ -104,7 +104,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 10,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/eacef32750374ad4bca430f58a0d3927"
     },
     {
       "id": "spotify_save_config",
@@ -112,7 +112,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 11,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/71d95f7c0e93480f9debb6d4a21d6df0"
     },
     {
       "id": "spotify_load_playlists",
@@ -120,7 +120,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 12,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/ec2a9cf782024297950f69e0ebb7ed6b"
     },
     {
       "id": "spotify_save_playlists",
@@ -128,7 +128,7 @@
       "version": "1.0.0",
       "required": true,
       "install_order": 13,
-      "icloud_url": "https://www.icloud.com/shortcuts/SHORTCUT_ID"
+      "icloud_url": "https://www.icloud.com/shortcuts/d0b0604d46f84056b077626f04db6394"
     }
   ],
 

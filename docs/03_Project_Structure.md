@@ -124,11 +124,17 @@ Two HTML files currently provide browser-based infrastructure.
 
 ## index.html
 
-`index.html` supports Spotify authentication.
+`index.html` provides the browser-based Spotify PKCE authentication entry point and callback.
 
-It acts as the project's HTTPS redirect endpoint during the PKCE authorization flow and transfers the authorization result back to Apple Shortcuts.
+The page does not contain installation-specific Spotify credentials.
 
-It is not the main project website.
+The `Spotify Login` Shortcut opens the configured Redirect URI and passes the user's Spotify Client ID as a query parameter.
+
+Conceptually:
+
+```text
+<redirect_uri>?client_id=<spotify_client_id>
+```
 
 ---
 

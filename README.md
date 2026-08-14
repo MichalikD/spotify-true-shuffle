@@ -403,5 +403,6 @@ Spotify True Shuffle is built with:
 * Apple Shortcuts
 * Scriptable
 * Spotify Web API
+* ChatGPT
 
 OpenAI tools were used during design, development, debugging and documentation of the project.

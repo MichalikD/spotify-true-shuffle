@@ -328,6 +328,12 @@ If authentication is required, it starts:
 Spotify Login
 ```
 
+The Spotify Login Shortcut opens the configured Redirect URI and passes the user's Spotify Client ID to the authentication page.
+
+The authentication page does not contain a hardcoded Spotify Client ID.
+
+This allows every installation to use its own Spotify Developer application while sharing the same Spotify True Shuffle authentication page.
+
 Safari opens the Spotify authorization page.
 
 Log in to Spotify and grant the requested permissions.

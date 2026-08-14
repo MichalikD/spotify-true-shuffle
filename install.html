@@ -611,9 +611,6 @@
         storageKey =
           `spotify-true-shuffle-install-${manifest.project.version}`;
 
-        statusElement.textContent =
-          `${manifest.project.name} ${manifest.project.version} (${manifest.project.channel}) — ${shortcuts.length} shortcuts`;
-
         renderShortcuts();
 
       } catch (error) {

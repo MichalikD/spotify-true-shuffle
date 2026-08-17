@@ -93,7 +93,7 @@
     {
       "id": "spotify_settings",
       "name": "Spotify Settings",
-      "version": "1.0.0",
+      "version": "1.10.0",
       "required": true,
       "install_order": 150,
       "icloud_url": "https://www.icloud.com/shortcuts/e142d753667e468093cd003a126940f7"

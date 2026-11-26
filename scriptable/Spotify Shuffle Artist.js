@@ -313,10 +313,16 @@ function shuffle(
   return result;
 }
 
-module.exports = {
+const shuffleModule = {
   normalizeArtists,
   tracksShareArtist,
   scoreArtistDistance,
   calculateArtistDistributionScore,
   shuffle
 };
+
+if (typeof module !== "undefined") {
+  module.exports = shuffleModule;
+} else {
+  globalThis.spotifyShuffleArtist = shuffleModule;
+}

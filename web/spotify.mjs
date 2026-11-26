@@ -172,7 +172,12 @@ export async function loadTracks(id) {
     for (const entry of page.items) {
       const track = entry?.item ?? entry?.track;
       if (trackUriPattern.test(track?.uri) && track.is_playable !== false && !track.is_local && !entry.is_local) {
-        tracks.push(track.uri);
+        tracks.push({
+          uri: track.uri,
+          name: track.name ?? "",
+          artists: (track.artists ?? []).map(artist => artist?.name ?? "").filter(Boolean),
+          album: { name: track.album?.name ?? "", uri: track.album?.uri ?? "" }
+        });
       }
     }
     pageUrl = page.next;

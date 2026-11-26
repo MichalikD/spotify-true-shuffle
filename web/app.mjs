@@ -1,3 +1,4 @@
+import { modes, shuffleUris } from "./engine.mjs";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache
@@ -5,10 +6,15 @@ import {
 
 const ui = Object.fromEntries(
   ["setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
-    "destination", "destination-playlist", "cache-link", "logout", "status"]
+    "mode", "presets", "preset-links", "preset-form", "preset-name", "preset-autostart",
+    "preset-result", "preset-url", "destination", "destination-playlist", "cache-link", "logout", "status"]
     .map(id => [id, document.getElementById(id)])
 );
-const preselected = new URLSearchParams(location.search).get("playlist");
+const launch = new URL(location.href);
+const presetId = launch.searchParams.get("preset");
+const authReturn = launch.searchParams.has("code") || launch.searchParams.has("error");
+const pendingKey = "spotify-true-shuffle-web:pending-shuffle";
+const presetKey = "presets";
 let busy = false;
 
 function showConnection() {
@@ -19,7 +25,7 @@ function showConnection() {
 
 function setBusy(value) {
   busy = value;
-  for (const control of document.querySelectorAll("button, input")) control.disabled = value;
+  for (const control of document.querySelectorAll("button, input, select")) control.disabled = value;
 }
 
 function report(error) {
@@ -44,6 +50,7 @@ async function shuffle() {
   const sourceId = playlistId(ui.playlist.value);
   if (!sourceId) throw new Error("Gib einen gültigen Spotify-Playlist-Link oder eine Playlist-ID ein.");
 
+  const mode = ui.mode.value;
   const { cacheKey } = await getCacheSettings();
   let cacheId = storage.get(cacheKey);
   if (cacheId === sourceId) throw new Error("Wähle eine andere Quelle als die Wiedergabeliste der Web-App.");
@@ -60,7 +67,8 @@ async function shuffle() {
   }
   if (!tracks.length) throw new Error("Die Playlist enthält keine unterstützten Spotify-Titel.");
   storage.set("source", sourceId);
-  const shuffled = globalThis.fisherYates(tracks);
+  storage.set("mode", mode);
+  const shuffled = await shuffleUris(tracks, mode);
 
   ui.status.textContent = "Wiedergabeliste wird geschrieben …";
   if (!cacheId) {
@@ -96,6 +104,11 @@ ui.login.addEventListener("submit", async event => {
   try {
     const clientId = ui["client-id"].value.trim();
     storage.set("client-id", clientId);
+    sessionStorage.setItem(pendingKey, JSON.stringify({
+      source: playlistId(ui.playlist.value),
+      mode: ui.mode.value,
+      preset: ui["preset-name"].value.trim().toLowerCase()
+    }));
     await signIn(clientId);
   } catch (error) {
     report(error);
@@ -132,8 +145,7 @@ ui.destination.addEventListener("submit", async event => {
   }
 });
 
-ui.shuffle.addEventListener("submit", async event => {
-  event.preventDefault();
+async function runShuffle() {
   if (busy) return;
   setBusy(true);
   ui["cache-link"].hidden = true;
@@ -152,6 +164,49 @@ ui.shuffle.addEventListener("submit", async event => {
   } finally {
     setBusy(false);
   }
+}
+
+ui.shuffle.addEventListener("submit", event => {
+  event.preventDefault();
+  void runShuffle();
+});
+
+function presetUrl(id) {
+  const url = new URL(callbackUrl);
+  url.searchParams.set("preset", id);
+  return url;
+}
+
+function renderPresetLinks() {
+  const links = ui["preset-links"];
+  links.replaceChildren();
+  for (const [id, preset] of Object.entries(storage.get(presetKey) ?? {})) {
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = presetUrl(id).href;
+    link.textContent = preset.name;
+    item.append(link);
+    links.append(item);
+  }
+  links.hidden = !links.childElementCount;
+}
+
+ui["preset-form"].addEventListener("submit", event => {
+  event.preventDefault();
+  if (busy) return;
+  const name = ui["preset-name"].value.trim();
+  const id = name.toLowerCase();
+  const source = playlistId(ui.playlist.value);
+  if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(id) || !source) {
+    ui.status.textContent = "Wähle eine gültige Playlist und einen Namen aus Buchstaben, Zahlen oder Bindestrichen.";
+    return;
+  }
+  const preset = { name, source, mode: ui.mode.value, autostart: ui["preset-autostart"].checked };
+  storage.set(presetKey, { ...storage.get(presetKey), [id]: preset });
+  ui["preset-url"].value = presetUrl(id).href;
+  ui["preset-result"].hidden = false;
+  renderPresetLinks();
+  ui.status.textContent = "Startlink gespeichert.";
 });
 
 ui.logout.addEventListener("click", () => {
@@ -162,12 +217,61 @@ ui.logout.addEventListener("click", () => {
   showConnection();
 });
 
-ui["callback-url"].textContent = callbackUrl;
-try {
-  await completeSignIn();
-} catch (error) {
-  report(error);
+async function initialize() {
+  ui["callback-url"].textContent = callbackUrl;
+  const pending = authReturn ? JSON.parse(sessionStorage.getItem(pendingKey)) : null;
+  if (authReturn) sessionStorage.removeItem(pendingKey);
+  let signedIn = false;
+  try {
+    await completeSignIn();
+    signedIn = authReturn && Boolean(storage.get("tokens"));
+  } catch (error) {
+    report(error);
+  }
+
+  const presets = storage.get(presetKey) ?? {};
+  const selectedPresetId = presetId ?? pending?.preset;
+  const preset = Object.hasOwn(presets, selectedPresetId) ? presets[selectedPresetId] : null;
+  const source = pending?.source ?? preset?.source ?? playlistId(launch.searchParams.get("playlist") ?? "");
+  const mode = pending?.mode ?? preset?.mode ?? launch.searchParams.get("mode") ?? storage.get("mode");
+  for (const [id, label] of Object.entries(modes)) ui.mode.add(new Option(label, id));
+  ui.mode.value = Object.hasOwn(modes, mode) ? mode : "random";
+  ui.playlist.value = source ?? storage.get("source") ?? "";
+  ui["client-id"].value = storage.get("client-id") ?? "";
+  if (preset) {
+    ui["preset-name"].value = preset.name;
+    ui["preset-autostart"].checked = preset.autostart;
+    ui["preset-url"].value = presetUrl(selectedPresetId).href;
+    ui["preset-result"].hidden = false;
+    ui.presets.open = true;
+  }
+  renderPresetLinks();
+  showConnection();
+
+  if (signedIn && source) {
+    setBusy(true);
+    try {
+      const { cacheKey } = await getCacheSettings();
+      const target = storage.get(cacheKey);
+      if (target) showCache(target);
+      ui.status.textContent = target
+        ? "Spotify ist verbunden. Prüfe Quelle, Modus und die verlinkte Wiedergabeliste und tippe dann auf „Mischen und abspielen“."
+        : "Spotify ist verbunden. Beim Start wird die private Wiedergabeliste „True Shuffle – Web“ angelegt.";
+    } catch (error) {
+      report(error);
+    } finally {
+      setBusy(false);
+    }
+  } else if (presetId && !preset) {
+    ui.status.textContent = "Dieser Startlink ist in diesem Browser nicht gespeichert.";
+  } else if (!authReturn && preset?.autostart && source && storage.get("tokens")) {
+    // Consume the launch URL so a reload cannot replace the playlist a second time.
+    launch.searchParams.delete("preset");
+    launch.searchParams.set("playlist", source);
+    launch.searchParams.set("mode", ui.mode.value);
+    history.replaceState(null, "", launch);
+    await runShuffle();
+  }
 }
-ui["client-id"].value = storage.get("client-id") ?? "";
-ui.playlist.value = playlistId(preselected ?? "") ?? storage.get("source") ?? "";
-showConnection();
+
+await initialize();

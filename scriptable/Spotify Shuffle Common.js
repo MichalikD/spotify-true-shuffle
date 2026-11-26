@@ -66,11 +66,15 @@ function getConfigBoolean(
   return defaultValue;
 }
 
+const shuffleModule = {
+  parseInput,
+  fisherYates,
+  getConfigNumber,
+  getConfigBoolean
+};
+
 if (typeof module !== "undefined") {
-  module.exports = {
-    parseInput,
-    fisherYates,
-    getConfigNumber,
-    getConfigBoolean
-  };
+  module.exports = shuffleModule;
+} else {
+  globalThis.spotifyShuffleCommon = shuffleModule;
 }

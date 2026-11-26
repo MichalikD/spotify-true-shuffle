@@ -472,6 +472,12 @@ function shuffle(
   };
 }
 
-module.exports = {
+const shuffleModule = {
   shuffle
 };
+
+if (typeof module !== "undefined") {
+  module.exports = shuffleModule;
+} else {
+  globalThis.spotifyShuffleBalanced = shuffleModule;
+}

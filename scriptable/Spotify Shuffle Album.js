@@ -386,7 +386,7 @@ function shuffle(
 }
 
 
-module.exports = {
+const shuffleModule = {
   normalizeAlbum,
   tracksShareAlbum,
   scoreAlbumDistance,
@@ -394,3 +394,9 @@ module.exports = {
   isAlbumContinuationFeasible,
   shuffle
 };
+
+if (typeof module !== "undefined") {
+  module.exports = shuffleModule;
+} else {
+  globalThis.spotifyShuffleAlbum = shuffleModule;
+}

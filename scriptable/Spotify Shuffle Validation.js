@@ -252,8 +252,14 @@ function validateEngineOutput(output) {
 }
 
 
-module.exports = {
+const shuffleModule = {
   validateTracks,
   validateShuffledTracks,
   validateEngineOutput
 };
+
+if (typeof module !== "undefined") {
+  module.exports = shuffleModule;
+} else {
+  globalThis.spotifyShuffleValidation = shuffleModule;
+}

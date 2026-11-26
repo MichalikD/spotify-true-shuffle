@@ -50,7 +50,7 @@ code { display: block; overflow-wrap: anywhere; }
 form { margin-top: 1rem; }
 label { display: block; font-weight: 650; }
 
-input, button {
+input, select, button {
   box-sizing: border-box;
   min-height: 2.75rem;
   padding: .55rem .75rem;
@@ -59,7 +59,8 @@ input, button {
   font: inherit;
 }
 
-input { display: block; width: 100%; margin: .3rem 0 1rem; }
+input, select { display: block; width: 100%; margin: .3rem 0 1rem; }
+.checkbox input { display: inline; width: auto; min-height: 0; margin: 0 .35rem 0 0; }
 button { cursor: pointer; }
 
 button[type="submit"] {

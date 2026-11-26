@@ -4,10 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://accounts.spotify.com https://api.spotify.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com; base-uri 'none'; form-action 'none'">
   <title>Spotify True Shuffle</title>
   <link rel="stylesheet" href="style.css">
-  <script defer src="../scriptable/Spotify%20Shuffle%20Common.js"></script>
   <script type="module" src="app.mjs"></script>
 </head>
 <body>
@@ -27,8 +26,25 @@
       <form id="shuffle">
         <label for="playlist">Quellplaylist</label>
         <input id="playlist" placeholder="Spotify-Link, URI oder Playlist-ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
-        <button type="submit">Zufällig mischen und abspielen</button>
+        <label for="mode">Shuffle-Modus</label>
+        <select id="mode"></select>
+        <button type="submit">Mischen und abspielen</button>
       </form>
+      <details id="presets">
+        <summary>Startlinks</summary>
+        <ul id="preset-links" hidden></ul>
+        <form id="preset-form">
+          <label for="preset-name">Name für die gewählte Playlist und den Modus</label>
+          <input id="preset-name" placeholder="z. B. Auto" required maxlength="32">
+          <label class="checkbox"><input id="preset-autostart" type="checkbox"> Beim Öffnen des Startlinks direkt mischen und abspielen</label>
+          <p>Beim Direktstart wird die eingestellte Wiedergabeliste ersetzt.</p>
+          <button type="submit">Startlink speichern</button>
+        </form>
+        <div id="preset-result" hidden>
+          <label for="preset-url">URL für den Kurzbefehl</label>
+          <input id="preset-url" readonly>
+        </div>
+      </details>
       <details>
         <summary>Wiedergabeliste einstellen</summary>
         <form id="destination">

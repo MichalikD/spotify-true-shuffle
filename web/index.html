@@ -27,9 +27,17 @@
       <form id="shuffle">
         <label for="playlist">Quellplaylist</label>
         <input id="playlist" placeholder="Spotify-Link, URI oder Playlist-ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
-        <p>Beim ersten Shuffle legt die Web-App eine private Wiedergabeliste an. Sie verwendet diese bei weiteren Starts erneut.</p>
         <button type="submit">Zufällig mischen und abspielen</button>
       </form>
+      <details>
+        <summary>Wiedergabeliste einstellen</summary>
+        <form id="destination">
+          <label for="destination-playlist">Vorhandene Wiedergabeliste</label>
+          <input id="destination-playlist" placeholder="Spotify-Link, URI oder Playlist-ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
+          <p>Beim Shuffle wird der Inhalt dieser Playlist ersetzt. Verwende dafür eine eigene, separate Liste. Ohne Auswahl legt die Web-App eine private Liste an.</p>
+          <button type="submit">Als Wiedergabeliste speichern</button>
+        </form>
+      </details>
       <p><a id="cache-link" hidden target="_blank" rel="noopener noreferrer">Wiedergabeliste in Spotify öffnen</a></p>
       <button type="button" id="logout">Spotify-Verbindung trennen</button>
     </section>

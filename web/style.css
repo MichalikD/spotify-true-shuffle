@@ -43,6 +43,8 @@ section {
 }
 
 h2 { margin-top: 0; }
+details { margin-top: 1rem; }
+summary { cursor: pointer; }
 a { color: var(--accent); }
 code { display: block; overflow-wrap: anywhere; }
 form { margin-top: 1rem; }

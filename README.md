@@ -16,6 +16,8 @@ The project combines Apple Shortcuts for orchestration and Spotify integration w
 
 > **Project status:** Beta
 
+An optional [browser preview](docs/12_Web_Preview.md) runs through GitHub Pages and uses the same Random shuffle algorithm. Open it directly, pin it to your home screen, or use a one-action Shortcut.
+
 ---
 
 # Features

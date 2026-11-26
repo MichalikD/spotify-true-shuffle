@@ -66,9 +66,11 @@ function getConfigBoolean(
   return defaultValue;
 }
 
-module.exports = {
-  parseInput,
-  fisherYates,
-  getConfigNumber,
-  getConfigBoolean
-};
+if (typeof module !== "undefined") {
+  module.exports = {
+    parseInput,
+    fisherYates,
+    getConfigNumber,
+    getConfigBoolean
+  };
+}

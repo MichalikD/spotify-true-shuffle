@@ -6,6 +6,12 @@ The project follows Semantic Versioning where practical.
 
 ---
 
+# [Unreleased]
+
+* Added a browser-based Random shuffle preview with Spotify PKCE login, a private playback playlist, and an optional URL-only Shortcut.
+
+---
+
 # [0.9.0] - Beta
 
 Spotify True Shuffle enters its first structured beta phase.

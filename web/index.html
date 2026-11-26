@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://accounts.spotify.com https://api.spotify.com; base-uri 'none'; form-action 'none'">
+  <title>Spotify True Shuffle</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="../scriptable/Spotify%20Shuffle%20Common.js"></script>
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <main>
+    <h1>Spotify True Shuffle</h1>
+    <section id="setup" hidden>
+      <h2>Spotify verbinden</h2>
+      <p>Trage diese Callback-URL im <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener noreferrer">Spotify Developer Dashboard</a> in deiner App ein.</p>
+      <code id="callback-url"></code>
+      <form id="login">
+        <label for="client-id">Spotify Client-ID</label>
+        <input id="client-id" required autocomplete="off" autocapitalize="none" spellcheck="false" pattern="[a-fA-F0-9]{32}">
+        <button type="submit">Mit Spotify verbinden</button>
+      </form>
+    </section>
+    <section id="ready" hidden>
+      <form id="shuffle">
+        <label for="playlist">Quellplaylist</label>
+        <input id="playlist" placeholder="Spotify-Link, URI oder Playlist-ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
+        <p>Beim ersten Shuffle legt die Web-App eine private Wiedergabeliste an. Sie verwendet diese bei weiteren Starts erneut.</p>
+        <button type="submit">Zufällig mischen und abspielen</button>
+      </form>
+      <p><a id="cache-link" hidden target="_blank" rel="noopener noreferrer">Wiedergabeliste in Spotify öffnen</a></p>
+      <button type="button" id="logout">Spotify-Verbindung trennen</button>
+    </section>
+    <p id="status" role="status" aria-live="polite"></p>
+    <noscript>Die Web-App benötigt JavaScript.</noscript>
+  </main>
+</body>
+</html>

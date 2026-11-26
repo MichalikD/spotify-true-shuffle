@@ -6,6 +6,7 @@ const trackUriPattern = /^spotify:track:[a-zA-Z0-9]{22}$/;
 const scopes = [
   "playlist-read-private",
   "playlist-modify-private",
+  "playlist-modify-public",
   "user-read-private",
   "user-modify-playback-state"
 ];
@@ -71,7 +72,8 @@ async function tokenRequest(params, clientId, oldRefreshToken) {
     clientId,
     accessToken: data.access_token,
     refreshToken,
-    expiresAt: Date.now() + data.expires_in * 1000
+    expiresAt: Date.now() + data.expires_in * 1000,
+    scope: data.scope ?? (oldRefreshToken ? storage.get("tokens")?.scope : undefined)
   };
   storage.set("tokens", tokens);
   return tokens;

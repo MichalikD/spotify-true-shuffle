@@ -5,7 +5,8 @@ import {
 
 const ui = Object.fromEntries(
   ["setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
-    "cache-link", "logout", "status"].map(id => [id, document.getElementById(id)])
+    "destination", "destination-playlist", "cache-link", "logout", "status"]
+    .map(id => [id, document.getElementById(id)])
 );
 const preselected = new URLSearchParams(location.search).get("playlist");
 let busy = false;
@@ -31,15 +32,19 @@ function showCache(cacheId) {
   ui["cache-link"].hidden = false;
 }
 
-async function shuffle() {
-  const sourceId = playlistId(ui.playlist.value);
-  if (!sourceId) throw new Error("Gib einen gültigen Spotify-Playlist-Link oder eine Playlist-ID ein.");
-
+async function getCacheSettings() {
   const profile = await api("me");
   const accountId = profile?.account_id ?? profile?.id;
   if (!accountId) throw new Error("Das Spotify-Konto konnte nicht ermittelt werden.");
 
-  const cacheKey = "cache:" + accountId;
+  return { profile, cacheKey: "cache:" + accountId };
+}
+
+async function shuffle() {
+  const sourceId = playlistId(ui.playlist.value);
+  if (!sourceId) throw new Error("Gib einen gültigen Spotify-Playlist-Link oder eine Playlist-ID ein.");
+
+  const { cacheKey } = await getCacheSettings();
   let cacheId = storage.get(cacheKey);
   if (cacheId === sourceId) throw new Error("Wähle eine andere Quelle als die Wiedergabeliste der Web-App.");
 
@@ -98,6 +103,35 @@ ui.login.addEventListener("submit", async event => {
   }
 });
 
+ui.destination.addEventListener("submit", async event => {
+  event.preventDefault();
+  if (busy) return;
+  setBusy(true);
+  try {
+    const cacheId = playlistId(ui["destination-playlist"].value);
+    if (!cacheId) throw new Error("Gib einen gültigen Spotify-Link für die Wiedergabeliste ein.");
+    if (cacheId === playlistId(ui.playlist.value)) {
+      throw new Error("Quelle und Wiedergabeliste müssen verschieden sein.");
+    }
+    const { profile, cacheKey } = await getCacheSettings();
+    const playlist = await api("playlists/" + cacheId + "?fields=name,owner(id),public");
+    if (!profile.id || playlist?.owner?.id !== profile.id) {
+      throw new Error("Wähle eine Wiedergabeliste, die deinem Spotify-Konto gehört.");
+    }
+    storage.set(cacheKey, cacheId);
+    showCache(cacheId);
+    const canModifyPublic = storage.get("tokens")?.scope?.split(" ").includes("playlist-modify-public");
+    ui.status.textContent = "Wiedergabeliste gespeichert: " + (playlist.name || cacheId)
+      + (playlist.public === true && !canModifyPublic
+        ? ". Trenne die Spotify-Verbindung und verbinde sie erneut, um öffentliche Playlists schreiben zu können."
+        : ".");
+  } catch (error) {
+    report(error);
+  } finally {
+    setBusy(false);
+  }
+});
+
 ui.shuffle.addEventListener("submit", async event => {
   event.preventDefault();
   if (busy) return;
@@ -122,6 +156,7 @@ ui.shuffle.addEventListener("submit", async event => {
 
 ui.logout.addEventListener("click", () => {
   storage.remove("tokens");
+  ui["destination-playlist"].value = "";
   ui["cache-link"].hidden = true;
   ui.status.textContent = "Spotify-Verbindung getrennt.";
   showConnection();

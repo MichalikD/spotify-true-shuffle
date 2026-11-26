@@ -8,6 +8,7 @@ The project follows Semantic Versioning where practical.
 
 # [Unreleased]
 
+* Allow the browser preview to reuse an existing Spotify playback playlist.
 * Added a browser-based Random shuffle preview with Spotify PKCE login, a private playback playlist, and an optional URL-only Shortcut.
 
 ---

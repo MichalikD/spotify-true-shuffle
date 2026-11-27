@@ -8,6 +8,7 @@ The project follows Semantic Versioning where practical.
 
 # [Unreleased]
 
+* Explain start-link naming rules and allow deleting saved start links in the browser.
 * Add Artist, Album and Balanced shuffle modes to the browser preview, plus saved launch links with optional auto-start.
 * Allow the browser preview to reuse an existing Spotify playback playlist.
 * Added a browser-based Random shuffle preview with Spotify PKCE login, a private playback playlist, and an optional URL-only Shortcut.

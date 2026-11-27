@@ -35,7 +35,8 @@
         <ul id="preset-links" hidden></ul>
         <form id="preset-form">
           <label for="preset-name">Name für die gewählte Playlist und den Modus</label>
-          <input id="preset-name" placeholder="z. B. Auto" required maxlength="32">
+          <input id="preset-name" placeholder="z. B. Auto-Balanced" required maxlength="32" aria-describedby="preset-name-hint">
+          <small id="preset-name-hint">Bis zu 32 Zeichen ohne Leerzeichen. Erlaubt sind A–Z, 0–9 und Bindestriche. Beginne mit einem Buchstaben oder einer Zahl.</small>
           <label class="checkbox"><input id="preset-autostart" type="checkbox"> Beim Öffnen des Startlinks direkt mischen und abspielen</label>
           <p>Beim Direktstart wird die eingestellte Wiedergabeliste ersetzt.</p>
           <button type="submit">Startlink speichern</button>

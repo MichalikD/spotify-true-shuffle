@@ -177,6 +177,31 @@ function presetUrl(id) {
   return url;
 }
 
+function deletePreset(id) {
+  if (busy) return;
+  const presets = storage.get(presetKey) ?? {};
+  if (!Object.hasOwn(presets, id)) {
+    renderPresetLinks();
+    return;
+  }
+  const { name } = presets[id];
+  if (!window.confirm("Startlink „" + name + "“ löschen?")) return;
+
+  delete presets[id];
+  storage.set(presetKey, presets);
+  if (ui["preset-url"].value === presetUrl(id).href) {
+    ui["preset-url"].value = "";
+    ui["preset-result"].hidden = true;
+  }
+  if (ui["preset-name"].value.trim().toLowerCase() === id) {
+    ui["preset-name"].value = "";
+    ui["preset-autostart"].checked = false;
+  }
+  renderPresetLinks();
+  ui["preset-name"].focus();
+  ui.status.textContent = "Startlink „" + name + "“ gelöscht.";
+}
+
 function renderPresetLinks() {
   const links = ui["preset-links"];
   links.replaceChildren();
@@ -185,7 +210,12 @@ function renderPresetLinks() {
     const link = document.createElement("a");
     link.href = presetUrl(id).href;
     link.textContent = preset.name;
-    item.append(link);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "Löschen";
+    remove.setAttribute("aria-label", "Startlink „" + preset.name + "“ löschen");
+    remove.addEventListener("click", () => deletePreset(id));
+    item.append(link, remove);
     links.append(item);
   }
   links.hidden = !links.childElementCount;
@@ -197,8 +227,12 @@ ui["preset-form"].addEventListener("submit", event => {
   const name = ui["preset-name"].value.trim();
   const id = name.toLowerCase();
   const source = playlistId(ui.playlist.value);
-  if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(id) || !source) {
-    ui.status.textContent = "Wähle eine gültige Playlist und einen Namen aus Buchstaben, Zahlen oder Bindestrichen.";
+  if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(id)) {
+    ui.status.textContent = "Verwende einen Namen ohne Leerzeichen, zum Beispiel Auto-Balanced.";
+    return;
+  }
+  if (!source) {
+    ui.status.textContent = "Wähle eine gültige Quellplaylist für den Startlink.";
     return;
   }
   const preset = { name, source, mode: ui.mode.value, autostart: ui["preset-autostart"].checked };

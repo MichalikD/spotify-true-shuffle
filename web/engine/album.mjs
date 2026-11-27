@@ -1,9 +1,3 @@
-// Variables used by Scriptable.
-// These must be at the very top of the file. Do not edit.
-// icon-color: deep-purple; icon-glyph: magic;
-// Variables used by Scriptable.
-// These must be at the very top of the file. Do not edit.
-// icon-color: teal; icon-glyph: magic;
 function normalizeAlbum(track) {
   if (
     track &&
@@ -386,7 +380,7 @@ function shuffle(
 }
 
 
-const shuffleModule = {
+export {
   normalizeAlbum,
   tracksShareAlbum,
   scoreAlbumDistance,
@@ -394,9 +388,3 @@ const shuffleModule = {
   isAlbumContinuationFeasible,
   shuffle
 };
-
-if (typeof module !== "undefined") {
-  module.exports = shuffleModule;
-} else {
-  globalThis.spotifyShuffleAlbum = shuffleModule;
-}

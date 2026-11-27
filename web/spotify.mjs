@@ -1,8 +1,8 @@
+import * as playlists from "./playlists.mjs";
+
 const apiBase = "https://api.spotify.com/v1/";
 const tokenUrl = "https://accounts.spotify.com/api/token";
 const prefix = "spotify-true-shuffle-web:";
-const playlistIdPattern = /^[a-zA-Z0-9]{22}$/;
-const trackUriPattern = /^spotify:track:[a-zA-Z0-9]{22}$/;
 const scopes = [
   "playlist-read-private",
   "playlist-modify-private",
@@ -143,53 +143,6 @@ export async function api(path, { method = "GET", body } = {}) {
   throw new SpotifyError(response.status, "Spotify meldet HTTP " + response.status + (detail ? " · " + detail : "."));
 }
 
-export function playlistId(input) {
-  const value = input.trim();
-  if (playlistIdPattern.test(value)) return value;
-  const uri = /^spotify:playlist:([a-zA-Z0-9]{22})$/.exec(value);
-  if (uri) return uri[1];
-  let url;
-  try {
-    url = new URL(value);
-  } catch {
-    return null;
-  }
-  if (url.origin === "https://open.spotify.com") {
-    return /^\/(?:intl-[a-zA-Z-]+\/)?playlist\/([a-zA-Z0-9]{22})\/?$/.exec(url.pathname)?.[1] ?? null;
-  }
-  return null;
-}
-
-export async function loadTracks(id) {
-  let pageUrl = "playlists/" + id + "/items?limit=50";
-  const visited = new Set();
-  const tracks = [];
-  while (pageUrl) {
-    if (visited.has(pageUrl)) throw new Error("Spotify wiederholt dieselbe Playlist-Seite.");
-    visited.add(pageUrl);
-    const page = await api(pageUrl);
-    if (!Array.isArray(page?.items)) throw new Error("Spotify hat keine gültige Playlist-Seite geliefert.");
-    for (const entry of page.items) {
-      const track = entry?.item ?? entry?.track;
-      if (trackUriPattern.test(track?.uri) && track.is_playable !== false && !track.is_local && !entry.is_local) {
-        tracks.push({
-          uri: track.uri,
-          name: track.name ?? "",
-          artists: (track.artists ?? []).map(artist => artist?.name ?? "").filter(Boolean),
-          album: { name: track.album?.name ?? "", uri: track.album?.uri ?? "" }
-        });
-      }
-    }
-    pageUrl = page.next;
-  }
-  return tracks;
-}
-
-export async function writeCache(id, tracks) {
-  for (let offset = 0; offset < tracks.length; offset += 100) {
-    await api("playlists/" + id + "/items", {
-      method: offset === 0 ? "PUT" : "POST",
-      body: { uris: tracks.slice(offset, offset + 100) }
-    });
-  }
-}
+export const playlistId = playlists.playlistId;
+export const loadTracks = id => playlists.loadTracks(api, id);
+export const writeCache = (id, tracks) => playlists.writeCache(api, id, tracks);

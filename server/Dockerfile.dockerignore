@@ -1,0 +1,11 @@
+**
+!server/
+!server/index.mjs
+!server/spotify.mjs
+!web/
+!web/engine.mjs
+!web/playlists.mjs
+!scriptable/
+!scriptable/*.js
+!config/
+!config/config.example.json

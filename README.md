@@ -18,6 +18,8 @@ The project combines Apple Shortcuts for orchestration and Spotify integration w
 
 An optional [browser preview](docs/12_Web_Preview.md) runs through GitHub Pages and uses the same Random shuffle algorithm. Open it directly, pin it to your home screen, or use a one-action Shortcut.
 
+An optional [HTTP service for iOS Shortcuts](docs/13_Browserless_Shortcut.md) can start a preset without opening Safari on each run.
+
 ---
 
 # Features

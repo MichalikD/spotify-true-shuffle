@@ -8,6 +8,7 @@ The project follows Semantic Versioning where practical.
 
 # [Unreleased]
 
+* Add an optional authenticated HTTP service for browserless iOS Shortcut playback.
 * Explain start-link naming rules and allow deleting saved start links in the browser.
 * Add Artist, Album and Balanced shuffle modes to the browser preview, plus saved launch links with optional auto-start.
 * Allow the browser preview to reuse an existing Spotify playback playlist.

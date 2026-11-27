@@ -1,14 +1,14 @@
-import "../scriptable/Spotify%20Shuffle%20Common.js?web=1";
-import "../scriptable/Spotify%20Shuffle%20Artist.js";
-import "../scriptable/Spotify%20Shuffle%20Album.js";
-import "../scriptable/Spotify%20Shuffle%20Balanced.js";
-import "../scriptable/Spotify%20Shuffle%20Validation.js";
+import * as commonModule from "../scriptable/Spotify%20Shuffle%20Common.js?web=1";
+import * as artistModule from "../scriptable/Spotify%20Shuffle%20Artist.js";
+import * as albumModule from "../scriptable/Spotify%20Shuffle%20Album.js";
+import * as balancedModule from "../scriptable/Spotify%20Shuffle%20Balanced.js";
+import * as validationModule from "../scriptable/Spotify%20Shuffle%20Validation.js";
 
-const common = globalThis.spotifyShuffleCommon;
-const artist = globalThis.spotifyShuffleArtist;
-const album = globalThis.spotifyShuffleAlbum;
-const balanced = globalThis.spotifyShuffleBalanced;
-const validation = globalThis.spotifyShuffleValidation;
+const common = commonModule.default ?? globalThis.spotifyShuffleCommon;
+const artist = artistModule.default ?? globalThis.spotifyShuffleArtist;
+const album = albumModule.default ?? globalThis.spotifyShuffleAlbum;
+const balanced = balancedModule.default ?? globalThis.spotifyShuffleBalanced;
+const validation = validationModule.default ?? globalThis.spotifyShuffleValidation;
 
 export const modes = Object.freeze({
   random: "Random",
@@ -27,7 +27,7 @@ async function getDefaults() {
   return defaults;
 }
 
-export async function shuffleUris(tracks, mode) {
+export async function shuffleUris(tracks, mode, settings) {
   validation.validateTracks(tracks);
   let result;
   switch (mode) {
@@ -35,13 +35,13 @@ export async function shuffleUris(tracks, mode) {
       result = common.fisherYates(tracks);
       break;
     case "artist":
-      result = artist.shuffle(tracks, await getDefaults(), common);
+      result = artist.shuffle(tracks, settings ?? await getDefaults(), common);
       break;
     case "album":
-      result = album.shuffle(tracks, await getDefaults(), common);
+      result = album.shuffle(tracks, settings ?? await getDefaults(), common);
       break;
     case "balanced":
-      result = balanced.shuffle(tracks, await getDefaults(), common, artist, album).tracks;
+      result = balanced.shuffle(tracks, settings ?? await getDefaults(), common, artist, album).tracks;
       break;
     default:
       throw new Error("Unbekannter Shuffle-Modus.");

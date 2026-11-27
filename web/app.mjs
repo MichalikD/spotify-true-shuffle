@@ -1,4 +1,4 @@
-import { modes, shuffleUris } from "./engine.mjs";
+import { modes, shuffleUris } from "./engine.mjs?v=2";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache

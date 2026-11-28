@@ -45,10 +45,10 @@ section {
 h2 { margin-top: 0; }
 details { margin-top: 1rem; }
 summary { cursor: pointer; }
-#balanced-controls { margin: 0 0 1rem; }
-#balanced-controls label { margin-top: .75rem; }
-#balanced-controls input { padding: 0; margin-bottom: .15rem; accent-color: var(--accent); }
-#balanced-reset { margin-top: .75rem; }
+#template-settings { margin: 0 0 1rem; }
+#template-settings label { margin-top: .75rem; }
+#template-settings input { padding: 0; margin-bottom: .15rem; accent-color: var(--accent); }
+#template-reset { margin-top: .75rem; }
 a { color: var(--accent); }
 code { display: block; overflow-wrap: anywhere; }
 form { margin-top: 1rem; }

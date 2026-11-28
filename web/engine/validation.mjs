@@ -1,4 +1,4 @@
-import { LocalizedError } from "../i18n.mjs";
+import { LocalizedError } from "../i18n.mjs?v=2";
 
 function validateTracks(trackList) {
   if (!Array.isArray(trackList)) {

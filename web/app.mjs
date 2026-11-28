@@ -1,13 +1,13 @@
-import { LocalizedError, setLanguage, t } from "./i18n.mjs";
-import { modes, normalizeBalancedTuning, shuffleUris } from "./engine.mjs?v=6";
+import { LocalizedError, setLanguage, t } from "./i18n.mjs?v=2";
+import { templates, resolveTuning, shuffleUris } from "./engine.mjs?v=7";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache
-} from "./spotify.mjs?v=2";
+} from "./spotify.mjs?v=3";
 
 const ui = Object.fromEntries(
   ["language", "setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
-    "mode", "balanced-controls", "balanced-focus", "balanced-variation", "balanced-reset",
+    "mode", "template-settings", "template-controls", "template-reset",
     "presets", "preset-links", "preset-form", "preset-name", "preset-autostart",
     "preset-result", "preset-url", "destination", "destination-playlist", "cache-link", "logout", "status"]
     .map(id => [id, document.getElementById(id)])
@@ -37,7 +37,7 @@ function applyLanguage(language) {
     element.placeholder = t(element.dataset.i18nPlaceholder);
   }
   const selectedMode = ui.mode.value;
-  ui.mode.replaceChildren(...Object.entries(modes).map(([id, label]) =>
+  ui.mode.replaceChildren(...Object.entries(templates).map(([id, { label }]) =>
     new Option(label, id)));
   if (selectedMode) ui.mode.value = selectedMode;
   renderPresetLinks();
@@ -50,42 +50,56 @@ ui.language.addEventListener("change", () => {
   applyLanguage(language);
 });
 
-function getBalancedTuning() {
-  return normalizeBalancedTuning({
-    focus: ui["balanced-focus"].valueAsNumber,
-    variation: ui["balanced-variation"].valueAsNumber
-  });
-}
-
-function setBalancedTuning(tuning) {
-  const { focus, variation } = normalizeBalancedTuning(tuning);
-  ui["balanced-focus"].value = focus;
-  ui["balanced-variation"].value = variation;
-}
-
 function templateMode(mode) {
   if (mode === "custom") return "balanced";
-  return Object.hasOwn(modes, mode) ? mode : null;
+  return Object.hasOwn(templates, mode) ? mode : null;
 }
 
-function balancedOverrides() {
-  if (ui.mode.value !== "balanced") return undefined;
-  const tuning = getBalancedTuning();
-  const defaults = normalizeBalancedTuning();
-  if (tuning.focus === defaults.focus && tuning.variation === defaults.variation) return undefined;
-  return tuning;
+function templateOverrides() {
+  const controls = templates[ui.mode.value].controls;
+  const overrides = {};
+  for (const input of ui["template-controls"].querySelectorAll("input")) {
+    const key = input.name;
+    if (input.valueAsNumber !== controls[key].defaultValue) overrides[key] = input.valueAsNumber;
+  }
+  return Object.keys(overrides).length ? overrides : undefined;
 }
 
-function showBalancedControls() {
-  ui["balanced-controls"].hidden = ui.mode.value !== "balanced";
+function renderTemplateControls(tuning) {
+  const mode = ui.mode.value;
+  const values = resolveTuning(mode, tuning);
+  const container = ui["template-controls"];
+  container.replaceChildren();
+  for (const [key, control] of Object.entries(templates[mode].controls)) {
+    const id = "template-" + key;
+    const label = document.createElement("label");
+    label.htmlFor = id;
+    label.dataset.i18n = control.label;
+    label.textContent = t(control.label);
+    const input = document.createElement("input");
+    input.type = "range";
+    input.id = id;
+    input.name = key;
+    input.min = control.min;
+    input.max = control.max;
+    input.value = values[key];
+    container.append(label, input);
+    if (control.hint) {
+      const hint = document.createElement("small");
+      hint.id = id + "-hint";
+      hint.dataset.i18n = control.hint;
+      hint.textContent = t(control.hint);
+      input.setAttribute("aria-describedby", hint.id);
+      container.append(hint);
+    }
+  }
 }
 
 ui.mode.addEventListener("change", () => {
-  setBalancedTuning();
-  ui["balanced-controls"].open = false;
-  showBalancedControls();
+  renderTemplateControls();
+  ui["template-settings"].open = false;
 });
-ui["balanced-reset"].addEventListener("click", () => setBalancedTuning());
+ui["template-reset"].addEventListener("click", () => renderTemplateControls());
 
 function showConnection() {
   const connected = Boolean(storage.get("tokens"));
@@ -139,8 +153,8 @@ async function shuffle() {
   if (!tracks.length) throw new LocalizedError("emptyPlaylist");
   storage.set("source", sourceId);
   storage.set("mode", mode);
-  const tuning = balancedOverrides();
-  if (tuning) storage.set(tuningKey, tuning);
+  const tuning = templateOverrides();
+  if (mode === "balanced" && tuning) storage.set(tuningKey, tuning);
   const shuffled = await shuffleUris(tracks, mode, tuning);
 
   setStatus("writingPlaylist");
@@ -181,7 +195,7 @@ ui.login.addEventListener("submit", async event => {
       source: playlistId(ui.playlist.value),
       mode: ui.mode.value,
       preset: ui["preset-name"].value.trim().toLowerCase(),
-      tuning: balancedOverrides()
+      tuning: templateOverrides()
     }));
     await signIn(clientId);
   } catch (error) {
@@ -308,7 +322,7 @@ ui["preset-form"].addEventListener("submit", event => {
     return;
   }
   const preset = { name, source, mode: ui.mode.value, autostart: ui["preset-autostart"].checked };
-  const tuning = balancedOverrides();
+  const tuning = templateOverrides();
   if (tuning) preset.tuning = tuning;
   storage.set(presetKey, { ...storage.get(presetKey), [id]: preset });
   ui["preset-url"].value = presetUrl(id).href;
@@ -356,14 +370,16 @@ async function initialize() {
     tuning = pending.tuning;
   } else if (linkedMode === "custom") {
     // Older mode=custom links used the last custom settings outside of a preset.
-    tuning = preset ? preset.tuning : storage.get(tuningKey) ?? storage.get("balanced-tuning");
+    tuning = preset
+      ? (templateMode(preset.mode) === "balanced" ? preset.tuning : undefined)
+      : storage.get(tuningKey) ?? storage.get("balanced-tuning");
   } else if (preset && !requestedMode) {
     tuning = preset.tuning;
-  } else if (!preset && history.state?.playlist === source) {
+  } else if (!preset && history.state?.playlist === source
+    && (history.state.mode ?? "balanced") === ui.mode.value) {
     tuning = history.state.tuning;
   }
-  setBalancedTuning(tuning);
-  showBalancedControls();
+  renderTemplateControls(tuning);
   ui.playlist.value = source ?? (directStart ? "" : storage.get("source") ?? "");
   ui["client-id"].value = storage.get("client-id") ?? "";
   if (preset) {
@@ -397,7 +413,7 @@ async function initialize() {
     launch.searchParams.delete("autostart");
     launch.searchParams.set("playlist", source);
     launch.searchParams.set("mode", ui.mode.value);
-    history.replaceState({ playlist: source, tuning: balancedOverrides() }, "", launch);
+    history.replaceState({ playlist: source, mode: ui.mode.value, tuning: templateOverrides() }, "", launch);
     await runShuffle();
   }
 }

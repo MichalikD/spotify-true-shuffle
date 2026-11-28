@@ -8,6 +8,11 @@ const messages = {
   shuffleMode: ["Shuffle mode", "Shuffle-Modus"],
   // Older cached app bundles still render Custom as a selectable mode.
   modeCustom: ["Custom", "Benutzerdefiniert"],
+  customizeTemplate: ["Customize template", "Vorlage anpassen"],
+  shuffleIntensity: ["Shuffle intensity", "Mischstärke"],
+  shuffleIntensityHint: ["At minimum, keep the source order. Lower settings shuffle smaller sections, and the maximum shuffles the whole playlist.", "Ganz links bleibt die Quellreihenfolge erhalten. Niedrigere Werte mischen kleinere Abschnitte, ganz rechts wird die gesamte Playlist gemischt."],
+  artistRepeats: ["Avoid nearby artist repeats", "Wiederholungen desselben Artists vermeiden"],
+  albumRepeats: ["Avoid nearby album repeats", "Wiederholungen desselben Albums vermeiden"],
   customTitle: ["Customize Balanced", "Balanced anpassen"],
   customFocus: ["Emphasis: Artist ↔ Album", "Gewichtung: Artist ↔ Album"],
   customFocusHint: ["Move left for more emphasis on artists or right for albums. The middle uses the Balanced defaults.", "Links zählt Artist stärker, rechts Album. Die Mitte entspricht dem Balanced-Standard."],

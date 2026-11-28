@@ -1,14 +1,12 @@
+import { LocalizedError } from "../i18n.mjs";
+
 function validateTracks(trackList) {
   if (!Array.isArray(trackList)) {
-    throw new Error(
-      "Der Schlüssel tracks muss eine Liste enthalten."
-    );
+    throw new LocalizedError("trackListExpected");
   }
 
   if (trackList.length === 0) {
-    throw new Error(
-      "Die übergebene Trackliste ist leer."
-    );
+    throw new LocalizedError("trackListEmpty");
   }
 
   for (
@@ -23,24 +21,18 @@ function validateTracks(trackList) {
       typeof track !== "object" ||
       Array.isArray(track)
     ) {
-      throw new Error(
-        `Track ${index + 1} ist kein gültiges Wörterbuch.`
-      );
+      throw new LocalizedError("trackInvalid", index + 1);
     }
 
     if (
       typeof track.uri !== "string" ||
       !track.uri.startsWith("spotify:track:")
     ) {
-      throw new Error(
-        `Track ${index + 1} besitzt keine gültige Spotify-URI.`
-      );
+      throw new LocalizedError("trackUriInvalid", index + 1);
     }
 
     if (!Array.isArray(track.artists)) {
-      throw new Error(
-        `Track ${index + 1} besitzt keine gültige Künstlerliste.`
-      );
+      throw new LocalizedError("trackArtistsInvalid", index + 1);
     }
 
     if (
@@ -48,9 +40,7 @@ function validateTracks(trackList) {
       typeof track.album !== "object" ||
       Array.isArray(track.album)
     ) {
-      throw new Error(
-        `Track ${index + 1} besitzt kein gültiges Album-Wörterbuch.`
-      );
+      throw new LocalizedError("trackAlbumInvalid", index + 1);
     }
   }
 }
@@ -62,18 +52,14 @@ function validateShuffledTracks(
   mode
 ) {
   if (!Array.isArray(shuffledTracks)) {
-    throw new Error(
-      `Shuffle-Modus "${mode}" hat keine gültige Trackliste zurückgegeben.`
-    );
+    throw new LocalizedError("shuffledListInvalid", mode);
   }
 
   if (
     shuffledTracks.length !==
     originalTracks.length
   ) {
-    throw new Error(
-      "Die Anzahl der Titel hat sich beim Mischen verändert."
-    );
+    throw new LocalizedError("shuffledCountChanged");
   }
 
   const originalUris =
@@ -99,9 +85,7 @@ function validateShuffledTracks(
       originalUris[index] !==
       shuffledUris[index]
     ) {
-      throw new Error(
-        "Die gemischte Trackliste enthält fehlende, zusätzliche oder veränderte Titel."
-      );
+      throw new LocalizedError("shuffledTracksChanged");
     }
   }
 }

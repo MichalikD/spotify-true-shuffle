@@ -1,11 +1,12 @@
-import { modes, normalizeCustomTuning, shuffleUris } from "./engine.mjs?v=4";
+import { LocalizedError, setLanguage, t } from "./i18n.mjs";
+import { modes, normalizeCustomTuning, shuffleUris } from "./engine.mjs?v=5";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache
-} from "./spotify.mjs";
+} from "./spotify.mjs?v=2";
 
 const ui = Object.fromEntries(
-  ["setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
+  ["language", "setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
     "mode", "custom-controls", "custom-focus", "custom-variation", "custom-reset",
     "presets", "preset-links", "preset-form", "preset-name", "preset-autostart",
     "preset-result", "preset-url", "destination", "destination-playlist", "cache-link", "logout", "status"]
@@ -18,6 +19,36 @@ const pendingKey = "spotify-true-shuffle-web:pending-shuffle";
 const presetKey = "presets";
 const tuningKey = "custom-tuning";
 let busy = false;
+let statusMessage;
+
+function setStatus(key, ...values) {
+  statusMessage = { key, values };
+  ui.status.textContent = t(key, ...values);
+}
+
+function applyLanguage(language) {
+  setLanguage(language);
+  document.documentElement.lang = language;
+  ui.language.value = language;
+  for (const element of document.querySelectorAll("[data-i18n]")) {
+    element.textContent = t(element.dataset.i18n);
+  }
+  for (const element of document.querySelectorAll("[data-i18n-placeholder]")) {
+    element.placeholder = t(element.dataset.i18nPlaceholder);
+  }
+  const selectedMode = ui.mode.value;
+  ui.mode.replaceChildren(...Object.entries(modes).map(([id, label]) =>
+    new Option(id === "custom" ? t("modeCustom") : label, id)));
+  if (selectedMode) ui.mode.value = selectedMode;
+  renderPresetLinks();
+  if (statusMessage) ui.status.textContent = t(statusMessage.key, ...statusMessage.values);
+}
+
+ui.language.addEventListener("change", () => {
+  const language = ui.language.value;
+  storage.set("language", language);
+  applyLanguage(language);
+});
 
 function getCustomTuning() {
   return normalizeCustomTuning({
@@ -72,7 +103,8 @@ function setBusy(value) {
 }
 
 function report(error) {
-  ui.status.textContent = error.message || "Der Vorgang ist fehlgeschlagen.";
+  if (error instanceof LocalizedError) setStatus(error.key, ...error.values);
+  else setStatus("failed");
   if (error instanceof LoginRequired) showConnection();
 }
 
@@ -84,45 +116,45 @@ function showCache(cacheId) {
 async function getCacheSettings() {
   const profile = await api("me");
   const accountId = profile?.account_id ?? profile?.id;
-  if (!accountId) throw new Error("Das Spotify-Konto konnte nicht ermittelt werden.");
+  if (!accountId) throw new LocalizedError("unknownAccount");
 
   return { profile, cacheKey: "cache:" + accountId };
 }
 
 async function shuffle() {
   const sourceId = playlistId(ui.playlist.value);
-  if (!sourceId) throw new Error("Gib einen gültigen Spotify-Playlist-Link oder eine Playlist-ID ein.");
+  if (!sourceId) throw new LocalizedError("invalidSource");
 
   const mode = ui.mode.value;
   const { cacheKey } = await getCacheSettings();
   let cacheId = storage.get(cacheKey);
-  if (cacheId === sourceId) throw new Error("Wähle eine andere Quelle als die Wiedergabeliste der Web-App.");
+  if (cacheId === sourceId) throw new LocalizedError("sameAsDestination");
 
-  ui.status.textContent = "Playlist wird geladen …";
+  setStatus("loadingPlaylist");
   let tracks;
   try {
     tracks = await loadTracks(sourceId);
   } catch (error) {
     if (error instanceof SpotifyError && error.status === 403) {
-      throw new Error("Spotify erlaubt keinen Zugriff auf diese Playlist. Teste eine eigene Playlist oder eine, an der du mitarbeitest.");
+      throw new LocalizedError("sourceDenied");
     }
     throw error;
   }
-  if (!tracks.length) throw new Error("Die Playlist enthält keine unterstützten Spotify-Titel.");
+  if (!tracks.length) throw new LocalizedError("emptyPlaylist");
   storage.set("source", sourceId);
   storage.set("mode", mode);
   const tuning = mode === "custom" ? getCustomTuning() : undefined;
   if (tuning) storage.set(tuningKey, tuning);
   const shuffled = await shuffleUris(tracks, mode, tuning);
 
-  ui.status.textContent = "Wiedergabeliste wird geschrieben …";
+  setStatus("writingPlaylist");
   if (!cacheId) {
     const created = await api("me/playlists", {
       method: "POST",
       body: { name: "True Shuffle – Web", public: false }
     });
     cacheId = playlistId(created?.id ?? "");
-    if (!cacheId) throw new Error("Spotify hat keine gültige ID für die Wiedergabeliste geliefert.");
+    if (!cacheId) throw new LocalizedError("invalidDestinationId");
     storage.set(cacheKey, cacheId);
   }
 
@@ -136,11 +168,11 @@ async function shuffle() {
     });
   } catch (error) {
     if (error instanceof SpotifyError && error.status === 404) {
-      throw new Error("Die Wiedergabeliste ist fertig. Öffne Spotify auf deinem Wunschgerät und starte dort die Wiedergabe.");
+      throw new LocalizedError("noDevice");
     }
     throw error;
   }
-  ui.status.textContent = shuffled.length + " Titel gemischt. Spotify hat den Wiedergabestart bestätigt.";
+  setStatus(shuffled.length === 1 ? "playedOne" : "playedMany", shuffled.length);
 }
 
 ui.login.addEventListener("submit", async event => {
@@ -168,22 +200,20 @@ ui.destination.addEventListener("submit", async event => {
   setBusy(true);
   try {
     const cacheId = playlistId(ui["destination-playlist"].value);
-    if (!cacheId) throw new Error("Gib einen gültigen Spotify-Link für die Wiedergabeliste ein.");
+    if (!cacheId) throw new LocalizedError("invalidDestination");
     if (cacheId === playlistId(ui.playlist.value)) {
-      throw new Error("Quelle und Wiedergabeliste müssen verschieden sein.");
+      throw new LocalizedError("samePlaylists");
     }
     const { profile, cacheKey } = await getCacheSettings();
     const playlist = await api("playlists/" + cacheId + "?fields=name,owner(id),public");
     if (!profile.id || playlist?.owner?.id !== profile.id) {
-      throw new Error("Wähle eine Wiedergabeliste, die deinem Spotify-Konto gehört.");
+      throw new LocalizedError("notYourDestination");
     }
     storage.set(cacheKey, cacheId);
     showCache(cacheId);
     const canModifyPublic = storage.get("tokens")?.scope?.split(" ").includes("playlist-modify-public");
-    ui.status.textContent = "Wiedergabeliste gespeichert: " + (playlist.name || cacheId)
-      + (playlist.public === true && !canModifyPublic
-        ? ". Trenne die Spotify-Verbindung und verbinde sie erneut, um öffentliche Playlists schreiben zu können."
-        : ".");
+    setStatus(playlist.public === true && !canModifyPublic ? "destinationSavedReconnect" : "destinationSaved",
+      playlist.name || cacheId);
   } catch (error) {
     report(error);
   } finally {
@@ -195,11 +225,11 @@ async function runShuffle() {
   if (busy) return;
   setBusy(true);
   ui["cache-link"].hidden = true;
-  ui.status.textContent = "Spotify wird geprüft …";
+  setStatus("checkingSpotify");
   try {
     if (navigator.locks) {
       await navigator.locks.request("spotify-true-shuffle-web", { ifAvailable: true }, lock => {
-        if (!lock) throw new Error("Ein Shuffle läuft bereits in einem anderen Tab.");
+        if (!lock) throw new LocalizedError("shuffleBusy");
         return shuffle();
       });
     } else {
@@ -231,7 +261,7 @@ function deletePreset(id) {
     return;
   }
   const { name } = presets[id];
-  if (!window.confirm("Startlink „" + name + "“ löschen?")) return;
+  if (!window.confirm(t("confirmDelete", name))) return;
 
   delete presets[id];
   storage.set(presetKey, presets);
@@ -245,7 +275,7 @@ function deletePreset(id) {
   }
   renderPresetLinks();
   ui["preset-name"].focus();
-  ui.status.textContent = "Startlink „" + name + "“ gelöscht.";
+  setStatus("presetDeleted", name);
 }
 
 function renderPresetLinks() {
@@ -258,8 +288,8 @@ function renderPresetLinks() {
     link.textContent = preset.name;
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.textContent = "Löschen";
-    remove.setAttribute("aria-label", "Startlink „" + preset.name + "“ löschen");
+    remove.textContent = t("delete");
+    remove.setAttribute("aria-label", t("deletePreset", preset.name));
     remove.addEventListener("click", () => deletePreset(id));
     item.append(link, remove);
     links.append(item);
@@ -274,11 +304,11 @@ ui["preset-form"].addEventListener("submit", event => {
   const id = name.toLowerCase();
   const source = playlistId(ui.playlist.value);
   if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(id)) {
-    ui.status.textContent = "Verwende einen Namen ohne Leerzeichen, zum Beispiel Auto-Balanced.";
+    setStatus("invalidPresetName");
     return;
   }
   if (!source) {
-    ui.status.textContent = "Wähle eine gültige Quellplaylist für den Startlink.";
+    setStatus("missingPresetPlaylist");
     return;
   }
   const preset = { name, source, mode: ui.mode.value, autostart: ui["preset-autostart"].checked };
@@ -287,14 +317,14 @@ ui["preset-form"].addEventListener("submit", event => {
   ui["preset-url"].value = presetUrl(id).href;
   ui["preset-result"].hidden = false;
   renderPresetLinks();
-  ui.status.textContent = "Startlink gespeichert.";
+  setStatus("presetSaved");
 });
 
 ui.logout.addEventListener("click", () => {
   storage.remove("tokens");
   ui["destination-playlist"].value = "";
   ui["cache-link"].hidden = true;
-  ui.status.textContent = "Spotify-Verbindung getrennt.";
+  setStatus("disconnected");
   showConnection();
 });
 
@@ -323,7 +353,6 @@ async function initialize() {
     ?? requestedMode
     ?? modeForSavedSelection(preset?.mode, preset?.tuning)
     ?? storage.get("mode");
-  for (const [id, label] of Object.entries(modes)) ui.mode.add(new Option(label, id));
   ui.mode.value = Object.hasOwn(modes, mode) ? mode : directStart ? "balanced" : "random";
   setCustomTuning(pending?.tuning ?? (preset ? preset.tuning : savedTuning));
   showCustomControls();
@@ -336,7 +365,6 @@ async function initialize() {
     ui["preset-result"].hidden = false;
     ui.presets.open = true;
   }
-  renderPresetLinks();
   showConnection();
 
   if (signedIn && source) {
@@ -345,18 +373,16 @@ async function initialize() {
       const { cacheKey } = await getCacheSettings();
       const target = storage.get(cacheKey);
       if (target) showCache(target);
-      ui.status.textContent = target
-        ? "Spotify ist verbunden. Prüfe Quelle, Modus und die verlinkte Wiedergabeliste und tippe dann auf „Mischen und abspielen“."
-        : "Spotify ist verbunden. Beim Start wird die private Wiedergabeliste „True Shuffle – Web“ angelegt.";
+      setStatus(target ? "signedIn" : "signedInNewPlaylist");
     } catch (error) {
       report(error);
     } finally {
       setBusy(false);
     }
   } else if (presetId && !preset) {
-    ui.status.textContent = "Dieser Startlink ist in diesem Browser nicht gespeichert.";
+    setStatus("missingPreset");
   } else if (!authReturn && directStart && !linkedPlaylist) {
-    ui.status.textContent = "Der Direktlink enthält keine gültige Spotify-Playlist.";
+    setStatus("invalidDirectLink");
   } else if (!authReturn && (preset?.autostart || directStart) && source && storage.get("tokens")) {
     // Consume the launch URL so a reload cannot replace the playlist a second time.
     launch.searchParams.delete("preset");
@@ -368,4 +394,7 @@ async function initialize() {
   }
 }
 
+const savedLanguage = storage.get("language");
+const browserLanguage = navigator.language?.split("-")[0].toLowerCase();
+applyLanguage(savedLanguage === "de" || savedLanguage === "en" ? savedLanguage : browserLanguage === "de" ? "de" : "en");
 await initialize();

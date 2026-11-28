@@ -1,46 +1,38 @@
-# Spotify True Shuffle einrichten
+# Set up Spotify True Shuffle
 
-Die Web-App läuft in Safari und ruft Spotify direkt auf.
+## Connect Spotify
 
-## Einrichtung
+1. Open the [web app](https://michalikd.github.io/spotify-true-shuffle/web/). If you use a fork, publish the root of your chosen branch with GitHub Pages and open `/web/`.
+2. Open your app in the Spotify Developer Dashboard. Add the callback URL displayed in the web app, including the trailing slash.
+3. Enter your Spotify Client ID and select **Connect Spotify**. Playback requires Spotify Premium. For an app in Development Mode, your Spotify account must be on the app's allowlist.
+4. Open Spotify on the device you want to play on. Enter the link to a Spotify playlist you own or collaborate on, then select **Shuffle and play**.
 
-1. Öffne [Spotify True Shuffle im Browser](https://michalikd.github.io/spotify-true-shuffle/web/). Wenn du einen Fork betreibst, aktiviere GitHub Pages für das Stammverzeichnis deines Veröffentlichungsbranches und öffne dort `/web/`.
-2. Öffne deine App im Spotify Developer Dashboard. Hinterlege die in der Web-App angezeigte Callback-URL zusätzlich zu vorhandenen URLs hinzu. Der Schrägstrich am Ende gehört zur URL.
-3. Trage in der Web-App deine Spotify Client-ID ein und verbinde dein Konto. Spotify Premium ist für den Wiedergabestart erforderlich. Bei Apps im Development Mode muss das verwendete Spotify-Konto für die App zugelassen sein.
-4. Öffne die Spotify-App auf deinem gewünschten Wiedergabegerät. Gib in der Web-App den Link zu einer eigenen Spotify-Playlist ein und tippe auf **Mischen und abspielen**.
+The app chooses German if German is your browser language and English otherwise. Use **Language / Sprache** to change it. Your choice is saved in the browser.
 
-Beim ersten Shuffle erstellt die Web-App standardmäßig die private Playlist **True Shuffle – Web**. Unter **Wiedergabeliste einstellen** kannst du eine vorhandene eigene Playlist speichern, etwa eine bereits genutzte Shuffle-Playlist. Das Speichern ändert die Playlist noch nicht. Beim nächsten Shuffle wird ihr Inhalt ersetzt. Quelle und Wiedergabeliste müssen unterschiedlich sein. Wenn du bereits vor dem Update angemeldet warst und eine öffentliche Liste als Ziel wählst, verbinde Spotify erneut, um die Schreibberechtigung dafür zu erteilen.
+On the first shuffle the app creates a private playlist called **True Shuffle – Web**. To use an existing playlist you own, open **Set playback playlist** and save its link. The app replaces its contents when you shuffle. Use a different playlist as the source. If you connected before the app requested permission to update public playlists, reconnect before choosing a public playback playlist.
 
-Wenn Spotify auf keinem Gerät die Wiedergabe annimmt, kannst du die vorbereitete Playlist über den angezeigten Link öffnen und in Spotify abspielen.
+If Spotify cannot start playback on any device, open the prepared playlist from the link in the web app and start playback in Spotify.
 
-Die Web-App speichert Client-ID, Tokens, zuletzt verwendete Quelle und die ID der Wiedergabeliste im Browserspeicher. Beim Ablauf des Access-Tokens wird die Verbindung automatisch erneuert. Wenn Spotify den Refresh-Token nicht mehr akzeptiert, kannst du Spotify erneut verbinden. **Spotify-Verbindung trennen** löscht die lokal gespeicherten Tokens.
+The app stores the Client ID, tokens, last source, and playback playlist ID in the browser. It refreshes the access token when needed. If Spotify rejects the refresh token, reconnect. **Disconnect Spotify** clears the locally saved tokens.
 
-## Benutzerdefinierter Shuffle
+## Custom shuffle
 
-**Balanced** verwendet die Standardgewichtung. Unter **Benutzerdefiniert** kannst du Artist oder Album stärker gewichten und die Variation bei der Titelauswahl einstellen. Die Gewichtung beeinflusst, welche Wiederholungen der Shuffle stärker vermeidet. Sie garantiert keinen Mindestabstand zwischen Titeln desselben Artists oder Albums.
+**Balanced** uses the default weights. In **Custom**, use the sliders to emphasize artists or albums and adjust variation in track selection. The emphasis affects which repeats the shuffle tries harder to avoid. It does not guarantee a minimum distance between repeats.
 
-**Standardwerte wiederherstellen** setzt beide Regler auf Balanced zurück. Die App merkt sich die zuletzt beim benutzerdefinierten Shuffle verwendeten Einstellungen. Speichere einen Startlink im Modus **Benutzerdefiniert**, um die Einstellungen mit dem Preset zu speichern. Bereits gespeicherte Balanced-Presets mit abweichenden Reglerwerten laufen automatisch als **Benutzerdefiniert** unter derselben URL weiter.
+**Reset to defaults** returns both sliders to Balanced. The app remembers the last settings used in Custom. Save a start link in Custom mode to store the settings with that preset. Older Balanced presets with modified slider settings open in Custom under the same URL.
 
-## Optionaler Start über iOS
+## Optional iOS shortcut
 
-Du kannst die Web-App als Lesezeichen oder Home-Bildschirm-Symbol hinzufügen. Für einen Kurzbefehl genügt die Aktion **URLs öffnen** mit der Adresse der Web-App. Dieselbe URL kannst du nach einem Update weiterverwenden.
+Open the app from a bookmark, a Home Screen icon or the **Open URLs** shortcut action. The URL can stay the same when the app is updated.
 
-Mit `?playlist=PLAYLIST_ID&mode=balanced` kannst du Playlist und Modus vorauswählen. Mögliche Werte für `mode` sind `random`, `artist`, `album`, `balanced` und `custom`. Ohne Modus in der URL verwendet die App den zuletzt ausgeführten Modus.
+- `?playlist=PLAYLIST_ID&mode=balanced` preselects a source and mode. Supported mode IDs are `random`, `artist`, `album`, `balanced`, and `custom`. Without a mode in the URL, the app uses the last mode.
+- `?playlist=PLAYLIST_ID&autostart=1` starts a one-off shuffle with the last mode, or Balanced on first use. Add `&mode=balanced` to always use Balanced. A full playlist link also works as the `playlist` value. URL-encode it in the shortcut so Spotify's query parameters remain part of the playlist link.
+- `?preset=car` opens a saved preset. Add `&mode=artist` to override its mode for this run. The preset still supplies the playlist and its auto-start setting.
 
-Für eine geteilte oder kopierte Playlist kann ein Kurzbefehl direkt `/web/?playlist=PLAYLIST_ID&autostart=1` öffnen. Als Wert für `playlist` geht auch der vollständige Spotify-Playlist-Link. Kodiere ihn dann mit der Kurzbefehlsaktion **URL codieren**, damit seine eigenen Parameter Teil des Playlist-Links bleiben. Ohne gültige Playlist startet kein Shuffle.
+To make a preset, choose a playlist and mode, open **Start links**, enter a name, and save. Copy the displayed URL into **Open URLs**. Preset names can contain up to 32 ASCII letters, digits, or hyphens and must begin with a letter or digit. Save under the same name to change the settings while keeping the URL. **Delete** removes the link from the browser and leaves the Spotify playlists alone.
 
-Der Direktlink verwendet den letzten Modus oder Balanced, wenn noch keiner gespeichert ist. Für festes Balanced hänge `&mode=balanced` an. Bei einer erneuten Spotify-Anmeldung bleiben Playlist und Modus ausgewählt, und du bestätigst den Start danach einmal auf der Webseite.
+Enable automatic playback on a preset to shuffle on open. If Spotify requires sign-in, the app keeps your selection and waits for you to confirm once you return.
 
-Unter **Startlinks** kannst du die gewählte Playlist und den Modus unter einem Namen speichern, etwa **Auto**. Kopiere die angezeigte URL mit `?preset=auto` in die Aktion **URLs öffnen**. Speichere unter demselben Namen erneut, um die Zuordnung zu ändern. Die URL bleibt dabei gleich.
+Start links and settings belong to the browser profile where you saved them. An app update at the same address or clearing only the file cache leaves them in place. If you clear website data or switch browser profiles, set them up again in that profile.
 
-Mit `?preset=auto&mode=artist` kannst du den gespeicherten Modus für einen Durchlauf überschreiben. Die Einstellung für den Direktstart kommt weiterhin aus dem Preset. Wenn der Link zusätzlich `playlist` enthält, verwendet die App die Playlist des Presets.
-
-Aktiviere den Direktstart im jeweiligen Startlink, wenn der Shuffle beim Öffnen automatisch beginnen soll. Die Einstellungen gelten für den Browser, in dem du den Startlink gespeichert hast. Bei einer erneuten Spotify-Anmeldung bleibt die Auswahl erhalten. Den Shuffle startest du nach dem Login einmal über die Schaltfläche.
-
-Namen können bis zu 32 Buchstaben (A–Z), Ziffern oder Bindestriche enthalten und beginnen mit einem Buchstaben oder einer Ziffer. Zum Entfernen eines Startlinks wähle **Löschen** neben seinem Namen. Die Spotify-Playlists bleiben erhalten.
-
-Startlinks und Einstellungen liegen im Website-Speicher des Browsers. Ein normales Update unter derselben Adresse oder das reine Leeren des Datei-Caches löscht diese Einstellungen nicht. Wenn du die Website-Daten löschst oder einen anderen Browser beziehungsweise ein anderes Profil verwendest, musst du die Einstellungen dort erneut hinterlegen.
-
-Der Kurzbefehl verwendet **URLs öffnen**, damit der Browser die Web-App ausführt. **Inhalte von URL abrufen** lädt lediglich die Antwort von GitHub Pages und führt den Shuffle nicht aus.
-
-Beim Direktstart braucht die Web-App etwas Zeit, um die Playlist zu laden, zu mischen und die Wiedergabe zu starten. Wenn du im Kurzbefehl anschließend die zuvor geöffnete App oder Spotify in den Vordergrund holst, ist ein fester Timer unabhängig vom tatsächlichen Erfolg des Shuffles.
+Use **Open URLs** rather than **Get Contents of URL**, which fetches the page without running its JavaScript. If your shortcut switches away from Safari on a timer, the timer cannot tell whether the shuffle is finished.

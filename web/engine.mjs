@@ -1,15 +1,17 @@
+import { LocalizedError } from "./i18n.mjs";
+
 import * as common from "./engine/common.mjs";
 import * as artist from "./engine/artist.mjs";
 import * as album from "./engine/album.mjs";
 import * as balanced from "./engine/balanced.mjs";
-import * as validation from "./engine/validation.mjs";
+import * as validation from "./engine/validation.mjs?v=2";
 
 export const modes = Object.freeze({
   random: "Random",
   artist: "Artist",
   album: "Album",
   balanced: "Balanced",
-  custom: "Benutzerdefiniert"
+  custom: "Custom"
 });
 
 export function normalizeCustomTuning(tuning) {
@@ -24,7 +26,7 @@ let defaults;
 async function getDefaults() {
   if (!defaults) {
     const response = await fetch(new URL("./engine/defaults.json", import.meta.url));
-    if (!response.ok) throw new Error("Die Shuffle-Einstellungen konnten nicht geladen werden.");
+    if (!response.ok) throw new LocalizedError("loadDefaultsFailed");
     defaults = await response.json();
   }
   return defaults;
@@ -61,7 +63,7 @@ export async function shuffleUris(tracks, mode, tuning) {
       break;
     }
     default:
-      throw new Error("Unbekannter Shuffle-Modus.");
+      throw new LocalizedError("unknownMode");
   }
   validation.validateShuffledTracks(tracks, result, mode);
   return result.map(track => track.uri);

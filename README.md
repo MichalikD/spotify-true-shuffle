@@ -1,21 +1,21 @@
 # Spotify True Shuffle
 
-Spotify True Shuffle erzeugt eine neue Reihenfolge für deine Spotify-Playlist und startet sie in einer separaten Wiedergabeliste. Die statische Web-App läuft im Browser auf GitHub Pages. Sie benötigt keinen eigenen Server.
+Spotify True Shuffle creates a new order for a Spotify playlist and plays it through a separate playback playlist. The web app runs in your browser on GitHub Pages and supports English and German.
 
-**[Web-App öffnen](https://michalikd.github.io/spotify-true-shuffle/web/)** · [Einrichtung und iOS-Kurzbefehl](docs/setup.md)
+**[Open the web app](https://michalikd.github.io/spotify-true-shuffle/web/)** · [Setup and iOS Shortcuts](docs/setup.md)
 
-| Modus | Verhalten |
+| Mode | Behavior |
 | --- | --- |
-| Random | Mischt die Titel per Fisher–Yates. |
-| Artist | Verteilt wiederkehrende Artists über die Playlist. |
-| Album | Verteilt Titel desselben Albums über die Playlist. |
-| Balanced | Berücksichtigt Artist und Album gemeinsam. |
-| Benutzerdefiniert | Erlaubt eigene Gewichte für Artist und Album sowie eine einstellbare Variation. |
+| Random | Uses the Fisher–Yates shuffle. |
+| Artist | Spreads tracks by the same artist across the playlist. |
+| Album | Spreads tracks from the same album across the playlist. |
+| Balanced | Uses both artist and album spacing. |
+| Custom | Lets you adjust the balance between artist and album spacing and vary track selection. |
 
-Die App speichert Einstellungen und Startlinks im Browser. Auf dem iPhone kann ein Kurzbefehl über **URLs öffnen** ein gespeichertes Preset starten. Die Wiedergabe benötigt Spotify Premium. Mit der offiziellen Spotify-API kannst du eigene Playlists und Listen verwenden, bei denen du mitwirkst.
+The app keeps settings and start links in your browser. On iPhone, a shortcut can use **Open URLs** to launch a saved preset. Starting playback requires Spotify Premium. Spotify's official API supports playlists you own or collaborate on.
 
-## Entwicklung
+## Development
 
-`web/` enthält die App, die Spotify-Anbindung und die [Shuffle-Engine](docs/engine.md). Starte im Repo-Stammverzeichnis `python3 -m http.server 8000 --bind 127.0.0.1` und öffne `http://127.0.0.1:8000/web/`. Für einen echten Spotify-Login muss auch diese Callback-URL in deiner Spotify-App hinterlegt sein.
+`web/` contains the app, Spotify integration, and [shuffle engine](docs/engine.md). From the repository root, run `python3 -m http.server 8000 --bind 127.0.0.1` and open `http://127.0.0.1:8000/web/`. To sign in to Spotify in this local setup, add that exact callback URL to your Spotify developer app.
 
-Der bisherige Stand mit Scriptable, dem iOS-Installer und dem optionalen Node.js-Dienst liegt auf dem [Archivbranch](https://github.com/MichalikD/spotify-true-shuffle/tree/archive/pre-web-cleanup). Die öffentliche Web-App verwendet weiter `/web/`. Der alte Login an der Projektwurzel und die Installer-Seite werden durch den Web-Einstieg abgelöst.
+The older Scriptable workflow, iOS installer, and optional Node.js service are available on the [archive branch](https://github.com/MichalikD/spotify-true-shuffle/tree/archive/pre-web-cleanup).

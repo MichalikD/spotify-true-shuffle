@@ -1,74 +1,82 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com; base-uri 'none'; form-action 'none'">
   <title>Spotify True Shuffle</title>
-  <link rel="stylesheet" href="style.css?v=3">
-  <script type="module" src="app.mjs?v=5"></script>
+  <link rel="stylesheet" href="style.css?v=4">
+  <script type="module" src="app.mjs?v=6"></script>
 </head>
 <body>
   <main>
-    <h1>Spotify True Shuffle</h1>
+    <header class="app-header">
+      <h1>Spotify True Shuffle</h1>
+      <label>Language / Sprache
+        <select id="language">
+          <option value="en" lang="en">English</option>
+          <option value="de" lang="de">Deutsch</option>
+        </select>
+      </label>
+    </header>
     <section id="setup" hidden>
-      <h2>Spotify verbinden</h2>
-      <p>Trage diese Callback-URL im <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener noreferrer">Spotify Developer Dashboard</a> in deiner App ein.</p>
+      <h2 data-i18n="connectTitle">Connect Spotify</h2>
+      <p><span data-i18n="callbackInstructions">Add the callback URL below to your app in the</span> <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener noreferrer">Spotify Developer Dashboard</a>.</p>
       <code id="callback-url"></code>
       <form id="login">
-        <label for="client-id">Spotify Client-ID</label>
+        <label data-i18n="spotifyClient" for="client-id">Spotify Client ID</label>
         <input id="client-id" required autocomplete="off" autocapitalize="none" spellcheck="false" pattern="[a-fA-F0-9]{32}">
-        <button type="submit">Mit Spotify verbinden</button>
+        <button data-i18n="connectButton" type="submit">Connect Spotify</button>
       </form>
     </section>
     <section id="ready" hidden>
       <form id="shuffle">
-        <label for="playlist">Quellplaylist</label>
-        <input id="playlist" placeholder="Spotify-Link, URI oder Playlist-ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
-        <label for="mode">Shuffle-Modus</label>
+        <label data-i18n="sourcePlaylist" for="playlist">Source playlist</label>
+        <input id="playlist" data-i18n-placeholder="playlistPlaceholder" placeholder="Spotify link, URI, or playlist ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
+        <label data-i18n="shuffleMode" for="mode">Shuffle mode</label>
         <select id="mode"></select>
         <details id="custom-controls" hidden>
-          <summary>Benutzerdefinierten Shuffle einstellen</summary>
-          <label for="custom-focus">Gewichtung: Artist ↔ Album</label>
+          <summary data-i18n="customTitle">Custom shuffle settings</summary>
+          <label data-i18n="customFocus" for="custom-focus">Emphasis: Artist ↔ Album</label>
           <input id="custom-focus" type="range" min="-10" max="10" value="0" aria-describedby="custom-focus-hint">
-          <small id="custom-focus-hint">Links zählt Artist stärker, rechts Album. Die Mitte entspricht dem Balanced-Standard.</small>
-          <label for="custom-variation">Variation bei der Titelauswahl</label>
+          <small data-i18n="customFocusHint" id="custom-focus-hint">Move left for more emphasis on artists or right for albums. The middle uses the Balanced defaults.</small>
+          <label data-i18n="customVariation" for="custom-variation">Variation in track selection</label>
           <input id="custom-variation" type="range" min="0" max="10" value="5">
-          <button id="custom-reset" type="button">Standardwerte wiederherstellen</button>
+          <button data-i18n="resetTuning" id="custom-reset" type="button">Reset to defaults</button>
         </details>
-        <button type="submit">Mischen und abspielen</button>
+        <button data-i18n="shuffleButton" type="submit">Shuffle and play</button>
       </form>
       <details id="presets">
-        <summary>Startlinks</summary>
+        <summary data-i18n="presets">Start links</summary>
         <ul id="preset-links" hidden></ul>
         <form id="preset-form">
-          <label for="preset-name">Name für die gewählte Playlist und den Modus</label>
-          <input id="preset-name" placeholder="z. B. Auto-Balanced" required maxlength="32" aria-describedby="preset-name-hint">
-          <small id="preset-name-hint">Bis zu 32 Zeichen ohne Leerzeichen. Erlaubt sind A–Z, 0–9 und Bindestriche. Beginne mit einem Buchstaben oder einer Zahl.</small>
-          <label class="checkbox"><input id="preset-autostart" type="checkbox"> Beim Öffnen des Startlinks direkt mischen und abspielen</label>
-          <p>Beim Direktstart wird die eingestellte Wiedergabeliste ersetzt.</p>
-          <button type="submit">Startlink speichern</button>
+          <label data-i18n="presetName" for="preset-name">Name for the selected playlist and mode</label>
+          <input id="preset-name" data-i18n-placeholder="presetPlaceholder" placeholder="e.g. Car-Balanced" required maxlength="32" aria-describedby="preset-name-hint">
+          <small data-i18n="presetHint" id="preset-name-hint">Up to 32 characters. Use A–Z, digits or hyphens, and start with a letter or digit.</small>
+          <label class="checkbox"><input id="preset-autostart" type="checkbox"> <span data-i18n="presetAutostart">Shuffle and play when this start link opens</span></label>
+          <p data-i18n="autostartNote">Starting automatically replaces the contents of the playback playlist.</p>
+          <button data-i18n="savePreset" type="submit">Save start link</button>
         </form>
         <div id="preset-result" hidden>
-          <label for="preset-url">URL für den Kurzbefehl</label>
+          <label data-i18n="shortcutUrl" for="preset-url">URL for the shortcut</label>
           <input id="preset-url" readonly>
         </div>
       </details>
       <details>
-        <summary>Wiedergabeliste einstellen</summary>
+        <summary data-i18n="destinationTitle">Set playback playlist</summary>
         <form id="destination">
-          <label for="destination-playlist">Vorhandene Wiedergabeliste</label>
-          <input id="destination-playlist" placeholder="Spotify-Link, URI oder Playlist-ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
-          <p>Beim Shuffle wird der Inhalt dieser Playlist ersetzt. Verwende dafür eine eigene, separate Liste. Ohne Auswahl legt die Web-App eine private Liste an.</p>
-          <button type="submit">Als Wiedergabeliste speichern</button>
+          <label data-i18n="existingDestination" for="destination-playlist">Existing playback playlist</label>
+          <input id="destination-playlist" data-i18n-placeholder="playlistPlaceholder" placeholder="Spotify link, URI, or playlist ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
+          <p data-i18n="destinationNote">Shuffling replaces the contents of this playlist. Use a separate playlist you own. If you leave this unset, the app creates a private playlist.</p>
+          <button data-i18n="saveDestination" type="submit">Save playback playlist</button>
         </form>
       </details>
-      <p><a id="cache-link" hidden target="_blank" rel="noopener noreferrer">Wiedergabeliste in Spotify öffnen</a></p>
-      <button type="button" id="logout">Spotify-Verbindung trennen</button>
+      <p><a data-i18n="openDestination" id="cache-link" hidden target="_blank" rel="noopener noreferrer">Open playback playlist in Spotify</a></p>
+      <button data-i18n="disconnect" type="button" id="logout">Disconnect Spotify</button>
     </section>
     <p id="status" role="status" aria-live="polite"></p>
-    <noscript>Die Web-App benötigt JavaScript.</noscript>
+    <noscript>This app requires JavaScript. <span lang="de">Diese App benötigt JavaScript.</span></noscript>
   </main>
 </body>
 </html>

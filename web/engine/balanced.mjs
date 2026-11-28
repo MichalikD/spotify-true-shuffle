@@ -3,7 +3,8 @@ function shuffle(
   shuffleConfig,
   common,
   artist,
-  album
+  album,
+  enforceAlbumSpacing = true
 ) {
   const debugData = {
     settings: {},
@@ -171,7 +172,7 @@ function shuffle(
     };
   }
 
-  const totalByArtist = {};
+  const totalByArtist = Object.create(null);
 
   for (const track of trackList) {
     const artists =
@@ -183,7 +184,7 @@ function shuffle(
     }
   }
 
-  const totalByAlbum = {};
+  const totalByAlbum = Object.create(null);
 
   for (const track of trackList) {
     const albumId =
@@ -193,8 +194,8 @@ function shuffle(
       (totalByAlbum[albumId] || 0) + 1;
   }
 
-  const usedByArtist = {};
-  const usedByAlbum = {};
+  const usedByArtist = Object.create(null);
+  const usedByAlbum = Object.create(null);
 
   while (remaining.length > 0) {
     const nextPosition =
@@ -207,7 +208,7 @@ function shuffle(
         }
       );
 
-    if (result.length > 0) {
+    if (enforceAlbumSpacing && result.length > 0) {
       const previousTrack =
         result[result.length - 1];
 
@@ -229,39 +230,41 @@ function shuffle(
       }
     }
 
-    const feasibleCandidateIndexes =
-      candidateIndexes.filter(
-        function (index) {
-          const candidate =
-            remaining[index];
+    if (enforceAlbumSpacing) {
+      const feasibleCandidateIndexes =
+        candidateIndexes.filter(
+          function (index) {
+            const candidate =
+              remaining[index];
 
-          const candidateAlbum =
-            album.normalizeAlbum(candidate);
+            const candidateAlbum =
+              album.normalizeAlbum(candidate);
 
-          const remainingAfterChoice =
-            remaining.filter(
-              function (
-                _,
-                remainingIndex
-              ) {
-                return (
-                  remainingIndex !== index
-                );
-              }
+            const remainingAfterChoice =
+              remaining.filter(
+                function (
+                  _,
+                  remainingIndex
+                ) {
+                  return (
+                    remainingIndex !== index
+                  );
+                }
+              );
+
+            return album.isAlbumContinuationFeasible(
+              remainingAfterChoice,
+              candidateAlbum
             );
+          }
+        );
 
-          return album.isAlbumContinuationFeasible(
-            remainingAfterChoice,
-            candidateAlbum
-          );
-        }
-      );
-
-    if (
-      feasibleCandidateIndexes.length > 0
-    ) {
-      candidateIndexes =
-        feasibleCandidateIndexes;
+      if (
+        feasibleCandidateIndexes.length > 0
+      ) {
+        candidateIndexes =
+          feasibleCandidateIndexes;
+      }
     }
 
     const scoredCandidates =

@@ -1,5 +1,5 @@
-import { LocalizedError } from "./i18n.mjs?v=2";
-import * as playlists from "./playlists.mjs?v=3";
+import { LocalizedError } from "./i18n.mjs?v=3";
+import * as playlists from "./playlists.mjs?v=4";
 
 const apiBase = "https://api.spotify.com/v1/";
 const tokenUrl = "https://accounts.spotify.com/api/token";

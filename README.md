@@ -9,9 +9,9 @@ Spotify True Shuffle creates a new order for a Spotify playlist and plays it thr
 | Random | Uses the Fisher–Yates shuffle. |
 | Artist | Spreads tracks by the same artist across the playlist. |
 | Album | Spreads tracks from the same album across the playlist. |
-| Balanced | Uses both artist and album spacing, with optional emphasis and variation settings. |
+| Balanced | Uses both artist and album spacing. |
 
-Each mode is a template with adjustable settings. The app keeps saved start links and their settings in your browser. On iPhone, a shortcut can use **Open URLs** to launch a saved preset with its playlist and shuffle settings. Starting playback requires Spotify Premium. Spotify's official API supports playlists you own or collaborate on.
+The four templates set starting values for the same three controls. Adjust artist spacing, album spacing, and randomness independently. The app keeps saved start links and their settings in your browser. On iPhone, a shortcut can use **Open URLs** to launch a saved preset with its playlist and shuffle settings. Starting playback requires Spotify Premium. Spotify's official API supports playlists you own or collaborate on.
 
 ## Development
 

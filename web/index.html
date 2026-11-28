@@ -7,7 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com; base-uri 'none'; form-action 'none'">
   <title>Spotify True Shuffle</title>
   <link rel="stylesheet" href="style.css?v=6">
-  <script type="module" src="app.mjs?v=8"></script>
+  <script type="module" src="app.mjs?v=9"></script>
 </head>
 <body>
   <main>
@@ -34,10 +34,11 @@
       <form id="shuffle">
         <label data-i18n="sourcePlaylist" for="playlist">Source playlist</label>
         <input id="playlist" data-i18n-placeholder="playlistPlaceholder" placeholder="Spotify link, URI, or playlist ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
-        <label data-i18n="shuffleMode" for="mode">Shuffle mode</label>
+        <label data-i18n="shuffleMode" for="mode">Shuffle template</label>
         <select id="mode"></select>
         <details id="template-settings">
           <summary data-i18n="customizeTemplate">Customize template</summary>
+          <p data-i18n="legacySettings" id="legacy-settings" hidden></p>
           <div id="template-controls"></div>
           <button data-i18n="resetTuning" id="template-reset" type="button">Reset to defaults</button>
         </details>
@@ -47,7 +48,7 @@
         <summary data-i18n="presets">Start links</summary>
         <ul id="preset-links" hidden></ul>
         <form id="preset-form">
-          <label data-i18n="presetName" for="preset-name">Name for the selected playlist and mode</label>
+          <label data-i18n="presetName" for="preset-name">Name for the selected playlist and template</label>
           <input id="preset-name" data-i18n-placeholder="presetPlaceholder" placeholder="e.g. Car-Balanced" required maxlength="32" aria-describedby="preset-name-hint">
           <small data-i18n="presetHint" id="preset-name-hint">Up to 32 characters. Use A–Z, digits or hyphens, and start with a letter or digit.</small>
           <label class="checkbox"><input id="preset-autostart" type="checkbox"> <span data-i18n="presetAutostart">Shuffle and play when this start link opens</span></label>

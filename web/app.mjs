@@ -1,13 +1,13 @@
-import { LocalizedError, setLanguage, t } from "./i18n.mjs?v=2";
-import { templates, resolveTuning, shuffleUris } from "./engine.mjs?v=7";
+import { LocalizedError, setLanguage, t } from "./i18n.mjs?v=3";
+import { controls, resolveSettings, settingsFromLegacy, shuffleUris, templates } from "./engine.mjs?v=8";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache
-} from "./spotify.mjs?v=3";
+} from "./spotify.mjs?v=4";
 
 const ui = Object.fromEntries(
   ["language", "setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
-    "mode", "template-settings", "template-controls", "template-reset",
+    "mode", "template-settings", "template-controls", "template-reset", "legacy-settings",
     "presets", "preset-links", "preset-form", "preset-name", "preset-autostart",
     "preset-result", "preset-url", "destination", "destination-playlist", "cache-link", "logout", "status"]
     .map(id => [id, document.getElementById(id)])
@@ -18,6 +18,7 @@ const authReturn = launch.searchParams.has("code") || launch.searchParams.has("e
 const pendingKey = "spotify-true-shuffle-web:pending-shuffle";
 const presetKey = "presets";
 const tuningKey = "custom-tuning";
+let activeLegacy = null;
 let busy = false;
 let statusMessage;
 
@@ -55,51 +56,59 @@ function templateMode(mode) {
   return Object.hasOwn(templates, mode) ? mode : null;
 }
 
-function templateOverrides() {
-  const controls = templates[ui.mode.value].controls;
-  const overrides = {};
-  for (const input of ui["template-controls"].querySelectorAll("input")) {
-    const key = input.name;
-    if (input.valueAsNumber !== controls[key].defaultValue) overrides[key] = input.valueAsNumber;
-  }
-  return Object.keys(overrides).length ? overrides : undefined;
+function currentSettings() {
+  return Object.fromEntries(Array.from(
+    ui["template-controls"].querySelectorAll("input"),
+    input => [input.name, input.valueAsNumber]
+  ));
 }
 
-function renderTemplateControls(tuning) {
-  const mode = ui.mode.value;
-  const values = resolveTuning(mode, tuning);
+function useSharedSettings() {
+  activeLegacy = null;
+  ui["legacy-settings"].hidden = true;
+}
+
+function renderTemplateControls(settings) {
+  const values = resolveSettings(ui.mode.value, settings);
   const container = ui["template-controls"];
   container.replaceChildren();
-  for (const [key, control] of Object.entries(templates[mode].controls)) {
+  for (const [key, control] of Object.entries(controls)) {
     const id = "template-" + key;
     const label = document.createElement("label");
     label.htmlFor = id;
-    label.dataset.i18n = control.label;
-    label.textContent = t(control.label);
+    const title = document.createElement("span");
+    title.dataset.i18n = control.label;
+    title.textContent = t(control.label);
+    const value = document.createElement("span");
+    label.append(title, value);
     const input = document.createElement("input");
     input.type = "range";
     input.id = id;
     input.name = key;
-    input.min = control.min;
-    input.max = control.max;
+    input.min = 0;
+    input.max = 10;
     input.value = values[key];
-    container.append(label, input);
-    if (control.hint) {
-      const hint = document.createElement("small");
-      hint.id = id + "-hint";
-      hint.dataset.i18n = control.hint;
-      hint.textContent = t(control.hint);
-      input.setAttribute("aria-describedby", hint.id);
-      container.append(hint);
-    }
+    value.textContent = ` (${input.value}/10)`;
+    input.addEventListener("input", () => {
+      useSharedSettings();
+      value.textContent = ` (${input.value}/10)`;
+    });
+    const hint = document.createElement("small");
+    hint.id = id + "-hint";
+    hint.dataset.i18n = control.hint;
+    hint.textContent = t(control.hint);
+    input.setAttribute("aria-describedby", hint.id);
+    container.append(label, input, hint);
   }
 }
 
-ui.mode.addEventListener("change", () => {
+function resetTemplateControls() {
+  useSharedSettings();
   renderTemplateControls();
-  ui["template-settings"].open = false;
-});
-ui["template-reset"].addEventListener("click", () => renderTemplateControls());
+}
+
+ui.mode.addEventListener("change", resetTemplateControls);
+ui["template-reset"].addEventListener("click", resetTemplateControls);
 
 function showConnection() {
   const connected = Boolean(storage.get("tokens"));
@@ -153,9 +162,7 @@ async function shuffle() {
   if (!tracks.length) throw new LocalizedError("emptyPlaylist");
   storage.set("source", sourceId);
   storage.set("mode", mode);
-  const tuning = templateOverrides();
-  if (mode === "balanced" && tuning) storage.set(tuningKey, tuning);
-  const shuffled = await shuffleUris(tracks, mode, tuning);
+  const shuffled = await shuffleUris(tracks, currentSettings(), activeLegacy);
 
   setStatus("writingPlaylist");
   if (!cacheId) {
@@ -195,7 +202,8 @@ ui.login.addEventListener("submit", async event => {
       source: playlistId(ui.playlist.value),
       mode: ui.mode.value,
       preset: ui["preset-name"].value.trim().toLowerCase(),
-      tuning: templateOverrides()
+      settings: currentSettings(),
+      legacy: activeLegacy
     }));
     await signIn(clientId);
   } catch (error) {
@@ -321,10 +329,13 @@ ui["preset-form"].addEventListener("submit", event => {
     setStatus("missingPresetPlaylist");
     return;
   }
-  const preset = { name, source, mode: ui.mode.value, autostart: ui["preset-autostart"].checked };
-  const tuning = templateOverrides();
-  if (tuning) preset.tuning = tuning;
+  const preset = {
+    name, source, mode: ui.mode.value,
+    autostart: ui["preset-autostart"].checked,
+    settings: currentSettings()
+  };
   storage.set(presetKey, { ...storage.get(presetKey), [id]: preset });
+  useSharedSettings();
   ui["preset-url"].value = presetUrl(id).href;
   ui["preset-result"].hidden = false;
   renderPresetLinks();
@@ -365,21 +376,24 @@ async function initialize() {
     ?? templateMode(storage.get("mode"));
   ui.mode.value = mode ?? (directStart ? "balanced" : "random");
 
-  let tuning;
-  if (pending) {
-    tuning = pending.tuning;
-  } else if (linkedMode === "custom") {
-    // Older mode=custom links used the last custom settings outside of a preset.
-    tuning = preset
+  const savedHistory = history.state?.playlist === source
+    && (history.state.mode ?? "balanced") === ui.mode.value ? history.state : null;
+  let saved = pending;
+  if (!saved && linkedMode === "custom") {
+    // Old mode=custom URLs without a preset used the last custom settings.
+    const tuning = preset
       ? (templateMode(preset.mode) === "balanced" ? preset.tuning : undefined)
       : storage.get(tuningKey) ?? storage.get("balanced-tuning");
-  } else if (preset && !requestedMode) {
-    tuning = preset.tuning;
-  } else if (!preset && history.state?.playlist === source
-    && (history.state.mode ?? "balanced") === ui.mode.value) {
-    tuning = history.state.tuning;
+    saved = templateMode(preset?.mode) === "balanced" && preset.settings
+      ? preset : { tuning };
   }
-  renderTemplateControls(tuning);
+  saved ??= requestedMode && preset ? null : preset ?? savedHistory;
+  if (saved) {
+    activeLegacy = saved.settings ? saved.legacy ?? null : { mode: ui.mode.value, tuning: saved.tuning };
+  }
+  const settings = saved?.settings ?? (activeLegacy ? await settingsFromLegacy(activeLegacy) : undefined);
+  renderTemplateControls(settings);
+  ui["legacy-settings"].hidden = !activeLegacy;
   ui.playlist.value = source ?? (directStart ? "" : storage.get("source") ?? "");
   ui["client-id"].value = storage.get("client-id") ?? "";
   if (preset) {
@@ -413,7 +427,12 @@ async function initialize() {
     launch.searchParams.delete("autostart");
     launch.searchParams.set("playlist", source);
     launch.searchParams.set("mode", ui.mode.value);
-    history.replaceState({ playlist: source, mode: ui.mode.value, tuning: templateOverrides() }, "", launch);
+    history.replaceState({
+      playlist: source,
+      mode: ui.mode.value,
+      settings: currentSettings(),
+      legacy: activeLegacy
+    }, "", launch);
     await runShuffle();
   }
 }

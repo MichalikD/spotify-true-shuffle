@@ -1,5 +1,5 @@
-import { LocalizedError } from "./i18n.mjs?v=3";
-import * as playlists from "./playlists.mjs?v=4";
+import { LocalizedError } from "./i18n.mjs?v=4";
+import * as playlists from "./playlists.mjs?v=5";
 
 const apiBase = "https://api.spotify.com/v1/";
 const tokenUrl = "https://accounts.spotify.com/api/token";
@@ -146,5 +146,5 @@ export async function api(path, { method = "GET", body } = {}) {
 }
 
 export const playlistId = playlists.playlistId;
-export const loadTracks = id => playlists.loadTracks(api, id);
+export const loadTracks = (id, options) => playlists.loadTracks(api, id, options);
 export const writeCache = (id, tracks) => playlists.writeCache(api, id, tracks);

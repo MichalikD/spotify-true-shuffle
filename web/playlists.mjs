@@ -1,4 +1,4 @@
-import { LocalizedError } from "./i18n.mjs?v=3";
+import { LocalizedError } from "./i18n.mjs?v=4";
 
 const playlistIdPattern = /^[a-zA-Z0-9]{22}$/;
 const trackUriPattern = /^spotify:track:[a-zA-Z0-9]{22}$/;
@@ -20,7 +20,7 @@ export function playlistId(input) {
   return null;
 }
 
-export async function loadTracks(api, id) {
+export async function loadTracks(api, id, { requireAllTracks = false } = {}) {
   let pageUrl = "playlists/" + id + "/items?limit=50";
   const visited = new Set();
   const tracks = [];
@@ -33,11 +33,13 @@ export async function loadTracks(api, id) {
       const track = entry?.item ?? entry?.track;
       if (trackUriPattern.test(track?.uri) && track.is_playable !== false && !track.is_local && !entry.is_local) {
         tracks.push({
-          uri: track.uri,
+          uri: requireAllTracks && trackUriPattern.test(track.linked_from?.uri) ? track.linked_from.uri : track.uri,
           name: track.name ?? "",
           artists: (track.artists ?? []).map(artist => artist?.name ?? "").filter(Boolean),
           album: { name: track.album?.name ?? "", uri: track.album?.uri ?? "" }
         });
+      } else if (requireAllTracks) {
+        throw new LocalizedError("unsupportedInPlaceItems");
       }
     }
     pageUrl = page.next;
@@ -47,9 +49,16 @@ export async function loadTracks(api, id) {
 
 export async function writeCache(api, id, tracks) {
   for (let offset = 0; offset < tracks.length; offset += 100) {
-    await api("playlists/" + id + "/items", {
-      method: offset === 0 ? "PUT" : "POST",
-      body: { uris: tracks.slice(offset, offset + 100) }
-    });
+    try {
+      await api("playlists/" + id + "/items", {
+        method: offset === 0 ? "PUT" : "POST",
+        body: { uris: tracks.slice(offset, offset + 100) }
+      });
+    } catch (cause) {
+      if (offset === 0) throw cause;
+      const error = new LocalizedError("partialPlaylistWrite", offset, tracks.length);
+      error.cause = cause;
+      throw error;
+    }
   }
 }

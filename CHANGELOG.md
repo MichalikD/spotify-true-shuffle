@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Guide users through copying playlists in Spotify, add an explicit in-place shuffle for the playback playlist, and report incomplete batch writes.
+
 - Use shared artist spacing, album spacing, and randomness controls for every template. Save the exact values in new start links and retain the behavior of older saved links.
 
 - Add template-specific tuning for Random, Artist, and Album.

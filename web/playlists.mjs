@@ -1,3 +1,5 @@
+import { LocalizedError } from "./i18n.mjs";
+
 const playlistIdPattern = /^[a-zA-Z0-9]{22}$/;
 const trackUriPattern = /^spotify:track:[a-zA-Z0-9]{22}$/;
 
@@ -23,10 +25,10 @@ export async function loadTracks(api, id) {
   const visited = new Set();
   const tracks = [];
   while (pageUrl) {
-    if (visited.has(pageUrl)) throw new Error("Spotify wiederholt dieselbe Playlist-Seite.");
+    if (visited.has(pageUrl)) throw new LocalizedError("repeatedPlaylistPage");
     visited.add(pageUrl);
     const page = await api(pageUrl);
-    if (!Array.isArray(page?.items)) throw new Error("Spotify hat keine gültige Playlist-Seite geliefert.");
+    if (!Array.isArray(page?.items)) throw new LocalizedError("invalidPlaylistPage");
     for (const entry of page.items) {
       const track = entry?.item ?? entry?.track;
       if (trackUriPattern.test(track?.uri) && track.is_playable !== false && !track.is_local && !entry.is_local) {

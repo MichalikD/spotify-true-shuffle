@@ -79,3 +79,15 @@ button[type="submit"] {
 
 button:disabled { cursor: wait; opacity: .65; }
 #status:empty { display: none; }
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+}
+
+.app-header label {
+  font-size: .875rem;
+}

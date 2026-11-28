@@ -1,4 +1,5 @@
-import * as playlists from "./playlists.mjs";
+import { LocalizedError } from "./i18n.mjs";
+import * as playlists from "./playlists.mjs?v=2";
 
 const apiBase = "https://api.spotify.com/v1/";
 const tokenUrl = "https://accounts.spotify.com/api/token";
@@ -18,10 +19,10 @@ export const storage = {
   remove: key => localStorage.removeItem(prefix + key)
 };
 
-export class LoginRequired extends Error {}
-export class SpotifyError extends Error {
-  constructor(status, message) {
-    super(message);
+export class LoginRequired extends LocalizedError {}
+export class SpotifyError extends LocalizedError {
+  constructor(status, key, ...values) {
+    super(key, ...values);
     this.status = status;
   }
 }
@@ -60,13 +61,13 @@ async function tokenRequest(params, clientId, oldRefreshToken) {
   const data = await response.json().catch(() => ({}));
   if (data.error === "invalid_grant" && oldRefreshToken) {
     if (storage.get("tokens")?.refreshToken === oldRefreshToken) storage.remove("tokens");
-    throw new LoginRequired("Die Spotify-Anmeldung ist abgelaufen. Bitte verbinde Spotify erneut.");
+    throw new LoginRequired("loginExpired");
   }
   if (!response.ok || !data.access_token || !Number.isFinite(data.expires_in)) {
-    throw new Error("Spotify konnte die Anmeldung nicht bestätigen (" + response.status + ").");
+    throw new LocalizedError("loginNotConfirmed", response.status);
   }
   const refreshToken = data.refresh_token ?? oldRefreshToken;
-  if (!refreshToken) throw new Error("Spotify hat keinen Refresh-Token zurückgegeben.");
+  if (!refreshToken) throw new LocalizedError("noRefreshToken");
 
   const tokens = {
     clientId,
@@ -87,10 +88,10 @@ export async function completeSignIn() {
   const pending = JSON.parse(sessionStorage.getItem(prefix + "oauth"));
   sessionStorage.removeItem(prefix + "oauth");
   if (!pending?.state || pending.state !== params.get("state")) {
-    throw new Error("Die Spotify-Anmeldung konnte nicht zugeordnet werden. Bitte starte sie erneut.");
+    throw new LocalizedError("loginMismatch");
   }
   if (params.has("error") || !params.get("code")) {
-    throw new Error("Die Spotify-Anmeldung wurde abgebrochen.");
+    throw new LocalizedError("loginCancelled");
   }
   await tokenRequest({
     grant_type: "authorization_code",
@@ -102,7 +103,7 @@ export async function completeSignIn() {
 
 async function accessToken(previousToken) {
   const tokens = storage.get("tokens");
-  if (!tokens) throw new LoginRequired("Bitte verbinde Spotify erneut.");
+  if (!tokens) throw new LoginRequired("loginRequired");
   if (tokens.accessToken !== previousToken && Date.now() + 60_000 < tokens.expiresAt) {
     return tokens.accessToken;
   }
@@ -116,7 +117,7 @@ async function accessToken(previousToken) {
 export async function api(path, { method = "GET", body } = {}) {
   const url = new URL(path, apiBase);
   if (!url.href.startsWith(apiBase) || url.username || url.password) {
-    throw new Error("Spotify hat eine ungültige API-Adresse geliefert.");
+    throw new LocalizedError("invalidApiAddress");
   }
   const send = token => {
     const headers = { Authorization: "Bearer " + token };
@@ -132,15 +133,16 @@ export async function api(path, { method = "GET", body } = {}) {
   if (response.ok) return data;
   if (response.status === 401) {
     storage.remove("tokens");
-    throw new LoginRequired("Spotify hat den Zugriff abgelehnt. Bitte verbinde Spotify erneut.");
+    throw new LoginRequired("spotifyDenied");
   }
   if (response.status === 429) {
     const seconds = response.headers.get("Retry-After");
-    const wait = seconds && /^\d+$/.test(seconds) ? " Warte " + seconds + " Sekunden." : "";
-    throw new SpotifyError(429, "Spotify begrenzt gerade die Anfragen." + wait + " Starte den Shuffle anschließend erneut.");
+    throw seconds && /^\d+$/.test(seconds)
+      ? new SpotifyError(429, "spotifyRetrySeconds", seconds)
+      : new SpotifyError(429, "spotifyRetry");
   }
   const detail = data?.error?.message;
-  throw new SpotifyError(response.status, "Spotify meldet HTTP " + response.status + (detail ? " · " + detail : "."));
+  throw new SpotifyError(response.status, detail ? "spotifyHttpDetail" : "spotifyHttp", response.status, detail);
 }
 
 export const playlistId = playlists.playlistId;

@@ -266,11 +266,16 @@ async function initialize() {
   const presets = storage.get(presetKey) ?? {};
   const selectedPresetId = presetId ?? pending?.preset;
   const preset = Object.hasOwn(presets, selectedPresetId) ? presets[selectedPresetId] : null;
-  const source = pending?.source ?? preset?.source ?? playlistId(launch.searchParams.get("playlist") ?? "");
-  const mode = pending?.mode ?? preset?.mode ?? launch.searchParams.get("mode") ?? storage.get("mode");
+  const directStart = presetId === null && launch.searchParams.get("autostart") === "1";
+  const linkedPlaylist = playlistId(launch.searchParams.get("playlist") ?? "");
+  const source = pending?.source ?? preset?.source ?? linkedPlaylist;
+  const linkedMode = launch.searchParams.get("mode");
+  const requestedMode = Object.hasOwn(modes, linkedMode) ? linkedMode : null;
+  const savedMode = storage.get("mode");
+  const mode = pending?.mode ?? requestedMode ?? preset?.mode ?? savedMode;
   for (const [id, label] of Object.entries(modes)) ui.mode.add(new Option(label, id));
-  ui.mode.value = Object.hasOwn(modes, mode) ? mode : "random";
-  ui.playlist.value = source ?? storage.get("source") ?? "";
+  ui.mode.value = Object.hasOwn(modes, mode) ? mode : directStart ? "balanced" : "random";
+  ui.playlist.value = source ?? (directStart ? "" : storage.get("source") ?? "");
   ui["client-id"].value = storage.get("client-id") ?? "";
   if (preset) {
     ui["preset-name"].value = preset.name;
@@ -298,9 +303,12 @@ async function initialize() {
     }
   } else if (presetId && !preset) {
     ui.status.textContent = "Dieser Startlink ist in diesem Browser nicht gespeichert.";
-  } else if (!authReturn && preset?.autostart && source && storage.get("tokens")) {
+  } else if (!authReturn && directStart && !linkedPlaylist) {
+    ui.status.textContent = "Der Direktlink enthält keine gültige Spotify-Playlist.";
+  } else if (!authReturn && (preset?.autostart || directStart) && source && storage.get("tokens")) {
     // Consume the launch URL so a reload cannot replace the playlist a second time.
     launch.searchParams.delete("preset");
+    launch.searchParams.delete("autostart");
     launch.searchParams.set("playlist", source);
     launch.searchParams.set("mode", ui.mode.value);
     history.replaceState(null, "", launch);

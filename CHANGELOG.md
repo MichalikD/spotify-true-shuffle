@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Keep Balanced on its defaults and move the tuning controls into a separate Custom mode.
 - Add artist/album emphasis and variation controls to Balanced and save them with start links.
 
 - Allow a direct shuffle from a Spotify playlist URL or ID without saving a preset.

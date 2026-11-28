@@ -1,12 +1,13 @@
-import { LocalizedError, setLanguage, t } from "./i18n.mjs?v=3";
-import { controls, resolveSettings, settingsFromLegacy, shuffleUris, templates } from "./engine.mjs?v=8";
+import { LocalizedError, setLanguage, t } from "./i18n.mjs?v=4";
+import { controls, resolveSettings, settingsFromLegacy, shuffleUris, templates } from "./engine.mjs?v=9";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache
-} from "./spotify.mjs?v=4";
+} from "./spotify.mjs?v=5";
 
 const ui = Object.fromEntries(
   ["language", "setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
+    "foreign-playlists", "open-source", "shuffle-in-place",
     "mode", "template-settings", "template-controls", "template-reset", "legacy-settings",
     "presets", "preset-links", "preset-form", "preset-name", "preset-autostart",
     "preset-result", "preset-url", "destination", "destination-playlist", "cache-link", "logout", "status"]
@@ -124,7 +125,7 @@ function setBusy(value) {
 function report(error) {
   if (error instanceof LocalizedError) setStatus(error.key, ...error.values);
   else setStatus("failed");
-  if (error instanceof LoginRequired) showConnection();
+  if (error instanceof LoginRequired || error.cause instanceof LoginRequired) showConnection();
 }
 
 function showCache(cacheId) {
@@ -140,29 +141,60 @@ async function getCacheSettings() {
   return { profile, cacheKey: "cache:" + accountId };
 }
 
-async function shuffle() {
-  const sourceId = playlistId(ui.playlist.value);
-  if (!sourceId) throw new LocalizedError("invalidSource");
+function updateSourceLink() {
+  const id = playlistId(ui.playlist.value);
+  ui["open-source"].hidden = !id;
+  if (id) ui["open-source"].href = "https://open.spotify.com/playlist/" + id;
+  else ui["open-source"].removeAttribute("href");
+}
 
-  const mode = ui.mode.value;
-  const { cacheKey } = await getCacheSettings();
+ui.playlist.addEventListener("input", updateSourceLink);
+
+async function shuffle(inPlace) {
+  const sourceInput = playlistId(ui.playlist.value);
+  if (!inPlace && !sourceInput) throw new LocalizedError("invalidSource");
+
+  const { profile, cacheKey } = await getCacheSettings();
   let cacheId = storage.get(cacheKey);
-  if (cacheId === sourceId) throw new LocalizedError("sameAsDestination");
+  let snapshot;
+  if (inPlace) {
+    if (!cacheId) throw new LocalizedError("missingInPlaceDestination");
+    const metadataPath = "playlists/" + cacheId + "?fields=name,owner(id),snapshot_id";
+    const playlist = await api(metadataPath);
+    if (!profile.id || playlist?.owner?.id !== profile.id) {
+      throw new LocalizedError("notYourDestination");
+    }
+    showCache(cacheId);
+    if (!window.confirm(t("confirmShuffleInPlace", playlist.name || cacheId))) {
+      setStatus("shuffleCancelled");
+      return;
+    }
+    snapshot = playlist.snapshot_id;
+  } else if (cacheId === sourceInput) {
+    throw new LocalizedError("sameAsDestination");
+  }
 
+  const sourceId = inPlace ? cacheId : sourceInput;
   setStatus("loadingPlaylist");
   let tracks;
   try {
-    tracks = await loadTracks(sourceId);
+    tracks = await loadTracks(sourceId, { requireAllTracks: inPlace });
   } catch (error) {
-    if (error instanceof SpotifyError && error.status === 403) {
+    if (!inPlace && error instanceof SpotifyError && error.status === 403) {
+      ui["foreign-playlists"].open = true;
       throw new LocalizedError("sourceDenied");
     }
     throw error;
   }
   if (!tracks.length) throw new LocalizedError("emptyPlaylist");
-  storage.set("source", sourceId);
-  storage.set("mode", mode);
+  if (!inPlace) storage.set("source", sourceId);
+  storage.set("mode", ui.mode.value);
   const shuffled = await shuffleUris(tracks, currentSettings(), activeLegacy);
+
+  if (inPlace && snapshot) {
+    const current = await api("playlists/" + cacheId + "?fields=snapshot_id");
+    if (current?.snapshot_id !== snapshot) throw new LocalizedError("playlistChanged");
+  }
 
   setStatus("writingPlaylist");
   if (!cacheId) {
@@ -175,8 +207,8 @@ async function shuffle() {
     storage.set(cacheKey, cacheId);
   }
 
-  await writeCache(cacheId, shuffled);
   showCache(cacheId);
+  await writeCache(cacheId, shuffled);
   try {
     await api("me/player/shuffle?state=false", { method: "PUT" });
     await api("me/player/play", {
@@ -239,7 +271,7 @@ ui.destination.addEventListener("submit", async event => {
   }
 });
 
-async function runShuffle() {
+async function runShuffle(inPlace = false) {
   if (busy) return;
   setBusy(true);
   ui["cache-link"].hidden = true;
@@ -248,10 +280,10 @@ async function runShuffle() {
     if (navigator.locks) {
       await navigator.locks.request("spotify-true-shuffle-web", { ifAvailable: true }, lock => {
         if (!lock) throw new LocalizedError("shuffleBusy");
-        return shuffle();
+        return shuffle(inPlace);
       });
     } else {
-      await shuffle();
+      await shuffle(inPlace);
     }
   } catch (error) {
     report(error);
@@ -264,6 +296,8 @@ ui.shuffle.addEventListener("submit", event => {
   event.preventDefault();
   void runShuffle();
 });
+
+ui["shuffle-in-place"].addEventListener("click", () => void runShuffle(true));
 
 function presetUrl(id) {
   const url = new URL(callbackUrl);
@@ -395,6 +429,7 @@ async function initialize() {
   renderTemplateControls(settings);
   ui["legacy-settings"].hidden = !activeLegacy;
   ui.playlist.value = source ?? (directStart ? "" : storage.get("source") ?? "");
+  updateSourceLink();
   ui["client-id"].value = storage.get("client-id") ?? "";
   if (preset) {
     ui["preset-name"].value = preset.name;

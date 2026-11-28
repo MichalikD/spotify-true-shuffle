@@ -7,7 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com; base-uri 'none'; form-action 'none'">
   <title>Spotify True Shuffle</title>
   <link rel="stylesheet" href="style.css?v=6">
-  <script type="module" src="app.mjs?v=9"></script>
+  <script type="module" src="app.mjs?v=10"></script>
 </head>
 <body>
   <main>
@@ -44,6 +44,13 @@
         </details>
         <button data-i18n="shuffleButton" type="submit">Shuffle and play</button>
       </form>
+      <details id="foreign-playlists">
+        <summary data-i18n="foreignPlaylists">Playlists from other users</summary>
+        <p data-i18n="copySourceHint"></p>
+        <p><a data-i18n="openSource" id="open-source" hidden target="_blank" rel="noopener noreferrer">Open source playlist in Spotify</a></p>
+        <p data-i18n="inPlaceHint" id="in-place-hint"></p>
+        <button id="shuffle-in-place" type="button" data-i18n="shuffleInPlace" aria-describedby="in-place-hint">Shuffle playback playlist in place</button>
+      </details>
       <details id="presets">
         <summary data-i18n="presets">Start links</summary>
         <ul id="preset-links" hidden></ul>

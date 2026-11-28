@@ -15,6 +15,15 @@ If Spotify cannot start playback on any device, open the prepared playlist from 
 
 The app stores the Client ID, tokens, last source, and playback playlist ID in the browser. It refreshes the access token when needed. If Spotify rejects the refresh token, reconnect. **Disconnect Spotify** clears the locally saved tokens.
 
+## Playlists from other users
+
+You can use a playlist link directly if you collaborate on that playlist. For other playlists, open the playlist in Spotify and choose **… → Add to other playlist**.
+
+- **For repeated use**, copy the tracks into an empty playlist you own. Paste the copy’s link into **Source playlist** in True Shuffle. You can save a start link for the copy or share its link with your iOS shortcut. Refresh the copy in Spotify if the original changes.
+- **For a one-off shuffle**, copy the tracks into the playback playlist configured in True Shuffle. Open **Playlists from other users**, select **Shuffle playback playlist in place**, and confirm the playlist name. Any tracks already in the playback playlist are included. This action must be started manually in the app.
+
+Shuffling in place rewrites the track entries in the same Spotify playlist. The app stops before writing if it encounters an unsupported or unavailable item. If a later write batch fails, the playback playlist may contain only part of the shuffle. For an in-place shuffle, restore the full copy before trying again.
+
 ## Shuffle templates
 
 All templates use the same three sliders from 0 to 10. Open **Customize template** to change their starting values.

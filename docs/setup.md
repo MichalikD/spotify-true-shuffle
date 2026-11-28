@@ -15,19 +15,19 @@ If Spotify cannot start playback on any device, open the prepared playlist from 
 
 The app stores the Client ID, tokens, last source, and playback playlist ID in the browser. It refreshes the access token when needed. If Spotify rejects the refresh token, reconnect. **Disconnect Spotify** clears the locally saved tokens.
 
-## Custom shuffle
+## Shuffle templates
 
-**Balanced** uses the default weights. In **Custom**, use the sliders to emphasize artists or albums and adjust variation in track selection. The emphasis affects which repeats the shuffle tries harder to avoid. It does not guarantee a minimum distance between repeats.
+Each mode starts with its own defaults. Choose **Balanced** and open **Customize Balanced** to emphasize artists or albums and adjust variation in track selection. The emphasis affects which repeats the shuffle tries harder to avoid. It does not guarantee a minimum distance between repeats.
 
-**Reset to defaults** returns both sliders to Balanced. The app remembers the last settings used in Custom. Save a start link in Custom mode to store the settings with that preset. Older Balanced presets with modified slider settings open in Custom under the same URL.
+**Reset to defaults** restores standard Balanced. Switching modes also resets the controls. To reuse a setup, save a start link. It stores the playlist, template and any changed settings. Older Custom presets and older Balanced presets with slider settings work as adjusted Balanced presets under the same URLs.
 
 ## Optional iOS shortcut
 
 Open the app from a bookmark, a Home Screen icon or the **Open URLs** shortcut action. The URL can stay the same when the app is updated.
 
-- `?playlist=PLAYLIST_ID&mode=balanced` preselects a source and mode. Supported mode IDs are `random`, `artist`, `album`, `balanced`, and `custom`. Without a mode in the URL, the app uses the last mode.
+- `?playlist=PLAYLIST_ID&mode=balanced` preselects a source and mode. Supported mode IDs are `random`, `artist`, `album`, and `balanced`. Existing `mode=custom` links still work as an alias for adjusted Balanced. Without a mode in the URL, the app uses the last mode.
 - `?playlist=PLAYLIST_ID&autostart=1` starts a one-off shuffle with the last mode, or Balanced on first use. Add `&mode=balanced` to always use Balanced. A full playlist link also works as the `playlist` value. URL-encode it in the shortcut so Spotify's query parameters remain part of the playlist link.
-- `?preset=car` opens a saved preset. Add `&mode=artist` to override its mode for this run. The preset still supplies the playlist and its auto-start setting.
+- `?preset=car` opens a saved preset. Add `&mode=artist` to use the Artist template defaults for that run. An explicit mode uses its defaults, except for the legacy `mode=custom` alias. The preset still supplies the playlist and its auto-start setting.
 
 To make a preset, choose a playlist and mode, open **Start links**, enter a name, and save. Copy the displayed URL into **Open URLs**. Preset names can contain up to 32 ASCII letters, digits, or hyphens and must begin with a letter or digit. Save under the same name to change the settings while keeping the URL. **Delete** removes the link from the browser and leaves the Spotify playlists alone.
 

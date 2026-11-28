@@ -6,8 +6,8 @@
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com; base-uri 'none'; form-action 'none'">
   <title>Spotify True Shuffle</title>
-  <link rel="stylesheet" href="style.css?v=4">
-  <script type="module" src="app.mjs?v=6"></script>
+  <link rel="stylesheet" href="style.css?v=5">
+  <script type="module" src="app.mjs?v=7"></script>
 </head>
 <body>
   <main>
@@ -36,14 +36,14 @@
         <input id="playlist" data-i18n-placeholder="playlistPlaceholder" placeholder="Spotify link, URI, or playlist ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
         <label data-i18n="shuffleMode" for="mode">Shuffle mode</label>
         <select id="mode"></select>
-        <details id="custom-controls" hidden>
-          <summary data-i18n="customTitle">Custom shuffle settings</summary>
-          <label data-i18n="customFocus" for="custom-focus">Emphasis: Artist ↔ Album</label>
-          <input id="custom-focus" type="range" min="-10" max="10" value="0" aria-describedby="custom-focus-hint">
-          <small data-i18n="customFocusHint" id="custom-focus-hint">Move left for more emphasis on artists or right for albums. The middle uses the Balanced defaults.</small>
-          <label data-i18n="customVariation" for="custom-variation">Variation in track selection</label>
-          <input id="custom-variation" type="range" min="0" max="10" value="5">
-          <button data-i18n="resetTuning" id="custom-reset" type="button">Reset to defaults</button>
+        <details id="balanced-controls" hidden>
+          <summary data-i18n="customTitle">Customize Balanced</summary>
+          <label data-i18n="customFocus" for="balanced-focus">Emphasis: Artist ↔ Album</label>
+          <input id="balanced-focus" type="range" min="-10" max="10" value="0" aria-describedby="balanced-focus-hint">
+          <small data-i18n="customFocusHint" id="balanced-focus-hint">Move left for more emphasis on artists or right for albums. The middle uses the Balanced defaults.</small>
+          <label data-i18n="customVariation" for="balanced-variation">Variation in track selection</label>
+          <input id="balanced-variation" type="range" min="0" max="10" value="5">
+          <button data-i18n="resetTuning" id="balanced-reset" type="button">Reset to defaults</button>
         </details>
         <button data-i18n="shuffleButton" type="submit">Shuffle and play</button>
       </form>

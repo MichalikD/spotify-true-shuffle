@@ -21,7 +21,13 @@ Du kannst die Web-App als Lesezeichen oder Home-Bildschirm-Symbol hinzufügen. F
 
 Mit `?playlist=PLAYLIST_ID&mode=balanced` kannst du Playlist und Modus vorauswählen. Mögliche Werte für `mode` sind `random`, `artist`, `album` und `balanced`. Ohne Modus in der URL verwendet die App den zuletzt ausgeführten Modus.
 
+Für eine geteilte oder kopierte Playlist kann ein Kurzbefehl direkt `/web/?playlist=PLAYLIST_ID&autostart=1` öffnen. Als Wert für `playlist` geht auch der vollständige Spotify-Playlist-Link. Kodiere ihn dann mit der Kurzbefehlsaktion **URL codieren**, damit seine eigenen Parameter Teil des Playlist-Links bleiben. Ohne gültige Playlist startet kein Shuffle.
+
+Der Direktlink verwendet den letzten Modus oder Balanced, wenn noch keiner gespeichert ist. Für festes Balanced hänge `&mode=balanced` an. Bei einer erneuten Spotify-Anmeldung bleiben Playlist und Modus ausgewählt, und du bestätigst den Start danach einmal auf der Webseite.
+
 Unter **Startlinks** kannst du die gewählte Playlist und den Modus unter einem Namen speichern, etwa **Auto**. Kopiere die angezeigte URL mit `?preset=auto` in die Aktion **URLs öffnen**. Speichere unter demselben Namen erneut, um die Zuordnung zu ändern. Die URL bleibt dabei gleich.
+
+Mit `?preset=auto&mode=artist` kannst du den gespeicherten Modus für einen Durchlauf überschreiben. Die Einstellung für den Direktstart kommt weiterhin aus dem Preset. Wenn der Link zusätzlich `playlist` enthält, verwendet die App die Playlist des Presets.
 
 Aktiviere den Direktstart im jeweiligen Startlink, wenn der Shuffle beim Öffnen automatisch beginnen soll. Die Einstellungen gelten für den Browser, in dem du den Startlink gespeichert hast. Bei einer erneuten Spotify-Anmeldung bleibt die Auswahl erhalten. Den Shuffle startest du nach dem Login einmal über die Schaltfläche.
 

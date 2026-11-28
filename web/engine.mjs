@@ -1,24 +1,48 @@
-import { LocalizedError } from "./i18n.mjs";
+import { LocalizedError } from "./i18n.mjs?v=2";
 
 import * as common from "./engine/common.mjs";
 import * as artist from "./engine/artist.mjs";
 import * as album from "./engine/album.mjs";
 import * as balanced from "./engine/balanced.mjs";
-import * as validation from "./engine/validation.mjs?v=2";
+import * as validation from "./engine/validation.mjs?v=3";
 
-export const modes = Object.freeze({
-  random: "Random",
-  artist: "Artist",
-  album: "Album",
-  balanced: "Balanced"
-});
+const variation = { label: "customVariation", min: 0, max: 10, defaultValue: 5 };
+const repeatStrength = label => ({ label, min: 0, max: 10, defaultValue: 5 });
 
-export function normalizeBalancedTuning(tuning) {
-  const { focus, variation } = tuning ?? {};
-  return {
-    focus: Number.isInteger(focus) && focus >= -10 && focus <= 10 ? focus : 0,
-    variation: Number.isInteger(variation) && variation >= 0 && variation <= 10 ? variation : 5
-  };
+export const templates = {
+  random: {
+    label: "Random",
+    controls: {
+      intensity: { label: "shuffleIntensity", hint: "shuffleIntensityHint", min: 0, max: 10, defaultValue: 10 }
+    }
+  },
+  artist: { label: "Artist", controls: { repeats: repeatStrength("artistRepeats"), variation } },
+  album: { label: "Album", controls: { repeats: repeatStrength("albumRepeats"), variation } },
+  balanced: {
+    label: "Balanced",
+    controls: {
+      focus: { label: "customFocus", hint: "customFocusHint", min: -10, max: 10, defaultValue: 0 },
+      variation
+    }
+  }
+};
+
+export function resolveTuning(mode, tuning) {
+  return Object.fromEntries(Object.entries(templates[mode].controls).map(([key, control]) => {
+    const value = tuning?.[key];
+    return [key, Number.isInteger(value) && value >= control.min && value <= control.max
+      ? value : control.defaultValue];
+  }));
+}
+
+function shuffleRandom(tracks, intensity) {
+  if (intensity === 10) return common.fisherYates(tracks);
+  const blockSize = 1 + Math.floor((tracks.length - 1) * intensity / 10);
+  const result = [];
+  for (let offset = 0; offset < tracks.length; offset += blockSize) {
+    for (const track of common.fisherYates(tracks.slice(offset, offset + blockSize))) result.push(track);
+  }
+  return result;
 }
 
 let defaults;
@@ -33,20 +57,25 @@ async function getDefaults() {
 
 export async function shuffleUris(tracks, mode, tuning) {
   validation.validateTracks(tracks);
+  if (!Object.hasOwn(templates, mode)) throw new LocalizedError("unknownMode");
+  const { intensity, repeats, focus, variation } = resolveTuning(mode, tuning);
   let result;
   switch (mode) {
     case "random":
-      result = common.fisherYates(tracks);
+      result = shuffleRandom(tracks, intensity);
       break;
     case "artist":
-      result = artist.shuffle(tracks, await getDefaults(), common);
+    case "album": {
+      const config = { ...await getDefaults() };
+      for (let distance = 1; distance <= 4; distance++) {
+        config[`${mode}_penalty_${distance}`] *= repeats / 5;
+      }
+      config[`${mode}_randomness`] *= variation / 5;
+      result = (mode === "artist" ? artist : album).shuffle(tracks, config, common);
       break;
-    case "album":
-      result = album.shuffle(tracks, await getDefaults(), common);
-      break;
+    }
     case "balanced": {
       const config = await getDefaults();
-      const { focus, variation } = normalizeBalancedTuning(tuning);
       const artistWeight = config.balanced_artist_weight;
       const albumWeight = config.balanced_album_weight;
       const shift = focus / 10 * (focus < 0 ? albumWeight : artistWeight);
@@ -58,8 +87,6 @@ export async function shuffleUris(tracks, mode, tuning) {
       }, common, artist, album).tracks;
       break;
     }
-    default:
-      throw new LocalizedError("unknownMode");
   }
   validation.validateShuffledTracks(tracks, result, mode);
   return result.map(track => track.uri);

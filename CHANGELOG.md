@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add template-specific tuning for Random, Artist, and Album.
 - Use shuffle modes as templates and store optional Balanced overrides with start links.
 - Add English and German language selection and translate project documentation into English.
 - Keep Balanced on its defaults and move the tuning controls into a separate Custom mode.

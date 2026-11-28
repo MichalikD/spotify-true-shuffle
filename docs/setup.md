@@ -17,9 +17,16 @@ The app stores the Client ID, tokens, last source, and playback playlist ID in t
 
 ## Shuffle templates
 
-Each mode starts with its own defaults. Choose **Balanced** and open **Customize Balanced** to emphasize artists or albums and adjust variation in track selection. The emphasis affects which repeats the shuffle tries harder to avoid. It does not guarantee a minimum distance between repeats.
+Each mode starts with its own defaults. Open **Customize template** to adjust the selected mode.
 
-**Reset to defaults** restores standard Balanced. Switching modes also resets the controls. To reuse a setup, save a start link. It stores the playlist, template and any changed settings. Older Custom presets and older Balanced presets with slider settings work as adjusted Balanced presets under the same URLs.
+| Template | Settings |
+| --- | --- |
+| Random | Shuffle intensity. Lower values mix smaller sections of the original order. The maximum shuffles the entire playlist. |
+| Artist | Nearby artist repeat penalties and variation in track selection. |
+| Album | Nearby album repeat penalties and variation in track selection. |
+| Balanced | Artist or album emphasis and variation in track selection. |
+
+**Reset to defaults** restores the selected template. Switching modes also restores defaults. Save a start link to reuse the playlist, template, and changed settings. Older Custom and Balanced presets keep their settings under the same URLs. The repeat controls change scoring preferences. The playlist's composition still affects how far apart repeats can be.
 
 ## Optional iOS shortcut
 

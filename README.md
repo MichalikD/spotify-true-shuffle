@@ -10,6 +10,7 @@ Spotify True Shuffle erzeugt eine neue Reihenfolge für deine Spotify-Playlist u
 | Artist | Verteilt wiederkehrende Artists über die Playlist. |
 | Album | Verteilt Titel desselben Albums über die Playlist. |
 | Balanced | Berücksichtigt Artist und Album gemeinsam. |
+| Benutzerdefiniert | Erlaubt eigene Gewichte für Artist und Album sowie eine einstellbare Variation. |
 
 Die App speichert Einstellungen und Startlinks im Browser. Auf dem iPhone kann ein Kurzbefehl über **URLs öffnen** ein gespeichertes Preset starten. Die Wiedergabe benötigt Spotify Premium. Mit der offiziellen Spotify-API kannst du eigene Playlists und Listen verwenden, bei denen du mitwirkst.
 

@@ -15,17 +15,17 @@ Wenn Spotify auf keinem Gerät die Wiedergabe annimmt, kannst du die vorbereitet
 
 Die Web-App speichert Client-ID, Tokens, zuletzt verwendete Quelle und die ID der Wiedergabeliste im Browserspeicher. Beim Ablauf des Access-Tokens wird die Verbindung automatisch erneuert. Wenn Spotify den Refresh-Token nicht mehr akzeptiert, kannst du Spotify erneut verbinden. **Spotify-Verbindung trennen** löscht die lokal gespeicherten Tokens.
 
-## Balanced einstellen
+## Benutzerdefinierter Shuffle
 
-Im Modus **Balanced** kannst du unter **Balanced einstellen** Artist oder Album stärker gewichten und die Variation bei der Titelauswahl anpassen. Die Gewichtung beeinflusst, welche Wiederholungen der Shuffle stärker vermeidet. Sie garantiert keinen Mindestabstand zwischen Titeln desselben Artists oder Albums.
+**Balanced** verwendet die Standardgewichtung. Unter **Benutzerdefiniert** kannst du Artist oder Album stärker gewichten und die Variation bei der Titelauswahl einstellen. Die Gewichtung beeinflusst, welche Wiederholungen der Shuffle stärker vermeidet. Sie garantiert keinen Mindestabstand zwischen Titeln desselben Artists oder Albums.
 
-**Standardwerte wiederherstellen** setzt beide Regler auf die bisherigen Balanced-Werte. Die App merkt sich die zuletzt beim Mischen verwendeten Balanced-Einstellungen. Speichere einen **Startlink** im Modus Balanced, um die aktuelle Einstellung mit diesem Preset zu speichern. Ältere Presets ohne eigene Reglerwerte verwenden weiterhin die Standardwerte.
+**Standardwerte wiederherstellen** setzt beide Regler auf Balanced zurück. Die App merkt sich die zuletzt beim benutzerdefinierten Shuffle verwendeten Einstellungen. Speichere einen Startlink im Modus **Benutzerdefiniert**, um die Einstellungen mit dem Preset zu speichern. Bereits gespeicherte Balanced-Presets mit abweichenden Reglerwerten laufen automatisch als **Benutzerdefiniert** unter derselben URL weiter.
 
 ## Optionaler Start über iOS
 
 Du kannst die Web-App als Lesezeichen oder Home-Bildschirm-Symbol hinzufügen. Für einen Kurzbefehl genügt die Aktion **URLs öffnen** mit der Adresse der Web-App. Dieselbe URL kannst du nach einem Update weiterverwenden.
 
-Mit `?playlist=PLAYLIST_ID&mode=balanced` kannst du Playlist und Modus vorauswählen. Mögliche Werte für `mode` sind `random`, `artist`, `album` und `balanced`. Ohne Modus in der URL verwendet die App den zuletzt ausgeführten Modus.
+Mit `?playlist=PLAYLIST_ID&mode=balanced` kannst du Playlist und Modus vorauswählen. Mögliche Werte für `mode` sind `random`, `artist`, `album`, `balanced` und `custom`. Ohne Modus in der URL verwendet die App den zuletzt ausgeführten Modus.
 
 Für eine geteilte oder kopierte Playlist kann ein Kurzbefehl direkt `/web/?playlist=PLAYLIST_ID&autostart=1` öffnen. Als Wert für `playlist` geht auch der vollständige Spotify-Playlist-Link. Kodiere ihn dann mit der Kurzbefehlsaktion **URL codieren**, damit seine eigenen Parameter Teil des Playlist-Links bleiben. Ohne gültige Playlist startet kein Shuffle.
 

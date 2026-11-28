@@ -1,4 +1,4 @@
-import { modes, normalizeBalancedTuning, shuffleUris } from "./engine.mjs?v=3";
+import { modes, normalizeCustomTuning, shuffleUris } from "./engine.mjs?v=4";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache
@@ -6,7 +6,7 @@ import {
 
 const ui = Object.fromEntries(
   ["setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
-    "mode", "balanced-controls", "balanced-focus", "balanced-variation", "balanced-reset",
+    "mode", "custom-controls", "custom-focus", "custom-variation", "custom-reset",
     "presets", "preset-links", "preset-form", "preset-name", "preset-autostart",
     "preset-result", "preset-url", "destination", "destination-playlist", "cache-link", "logout", "status"]
     .map(id => [id, document.getElementById(id)])
@@ -16,28 +16,49 @@ const presetId = launch.searchParams.get("preset");
 const authReturn = launch.searchParams.has("code") || launch.searchParams.has("error");
 const pendingKey = "spotify-true-shuffle-web:pending-shuffle";
 const presetKey = "presets";
-const tuningKey = "balanced-tuning";
+const tuningKey = "custom-tuning";
 let busy = false;
 
-function getBalancedTuning() {
-  return normalizeBalancedTuning({
-    focus: ui["balanced-focus"].valueAsNumber,
-    variation: ui["balanced-variation"].valueAsNumber
+function getCustomTuning() {
+  return normalizeCustomTuning({
+    focus: ui["custom-focus"].valueAsNumber,
+    variation: ui["custom-variation"].valueAsNumber
   });
 }
 
-function setBalancedTuning(tuning) {
-  const { focus, variation } = normalizeBalancedTuning(tuning);
-  ui["balanced-focus"].value = focus;
-  ui["balanced-variation"].value = variation;
+function setCustomTuning(tuning) {
+  const { focus, variation } = normalizeCustomTuning(tuning);
+  ui["custom-focus"].value = focus;
+  ui["custom-variation"].value = variation;
 }
 
-function showBalancedControls() {
-  ui["balanced-controls"].hidden = ui.mode.value !== "balanced";
+function modeForSavedSelection(mode, tuning) {
+  // Preserve customized selections created before Custom was a separate mode.
+  if (mode !== "balanced" || !tuning) return mode;
+  const current = normalizeCustomTuning(tuning);
+  const defaults = normalizeCustomTuning();
+  return current.focus !== defaults.focus || current.variation !== defaults.variation ? "custom" : mode;
 }
 
-ui.mode.addEventListener("change", showBalancedControls);
-ui["balanced-reset"].addEventListener("click", () => setBalancedTuning());
+function loadSavedTuning() {
+  const saved = storage.get(tuningKey);
+  if (saved !== null) return saved;
+  const legacy = storage.get("balanced-tuning");
+  if (!legacy) return null;
+
+  const migrated = normalizeCustomTuning(legacy);
+  storage.set(tuningKey, migrated);
+  const lastMode = storage.get("mode");
+  if (lastMode === "balanced") storage.set("mode", modeForSavedSelection(lastMode, migrated));
+  return migrated;
+}
+
+function showCustomControls() {
+  ui["custom-controls"].hidden = ui.mode.value !== "custom";
+}
+
+ui.mode.addEventListener("change", showCustomControls);
+ui["custom-reset"].addEventListener("click", () => setCustomTuning());
 
 function showConnection() {
   const connected = Boolean(storage.get("tokens"));
@@ -90,7 +111,7 @@ async function shuffle() {
   if (!tracks.length) throw new Error("Die Playlist enthält keine unterstützten Spotify-Titel.");
   storage.set("source", sourceId);
   storage.set("mode", mode);
-  const tuning = mode === "balanced" ? getBalancedTuning() : undefined;
+  const tuning = mode === "custom" ? getCustomTuning() : undefined;
   if (tuning) storage.set(tuningKey, tuning);
   const shuffled = await shuffleUris(tracks, mode, tuning);
 
@@ -132,7 +153,7 @@ ui.login.addEventListener("submit", async event => {
       source: playlistId(ui.playlist.value),
       mode: ui.mode.value,
       preset: ui["preset-name"].value.trim().toLowerCase(),
-      tuning: getBalancedTuning()
+      tuning: ui.mode.value === "custom" ? getCustomTuning() : undefined
     }));
     await signIn(clientId);
   } catch (error) {
@@ -261,7 +282,7 @@ ui["preset-form"].addEventListener("submit", event => {
     return;
   }
   const preset = { name, source, mode: ui.mode.value, autostart: ui["preset-autostart"].checked };
-  if (preset.mode === "balanced") preset.tuning = getBalancedTuning();
+  if (preset.mode === "custom") preset.tuning = getCustomTuning();
   storage.set(presetKey, { ...storage.get(presetKey), [id]: preset });
   ui["preset-url"].value = presetUrl(id).href;
   ui["preset-result"].hidden = false;
@@ -297,12 +318,15 @@ async function initialize() {
   const source = pending?.source ?? preset?.source ?? linkedPlaylist;
   const linkedMode = launch.searchParams.get("mode");
   const requestedMode = Object.hasOwn(modes, linkedMode) ? linkedMode : null;
-  const savedMode = storage.get("mode");
-  const mode = pending?.mode ?? requestedMode ?? preset?.mode ?? savedMode;
+  const savedTuning = loadSavedTuning();
+  const mode = modeForSavedSelection(pending?.mode, pending?.tuning)
+    ?? requestedMode
+    ?? modeForSavedSelection(preset?.mode, preset?.tuning)
+    ?? storage.get("mode");
   for (const [id, label] of Object.entries(modes)) ui.mode.add(new Option(label, id));
   ui.mode.value = Object.hasOwn(modes, mode) ? mode : directStart ? "balanced" : "random";
-  setBalancedTuning(pending?.tuning ?? (preset ? preset.tuning : storage.get(tuningKey)));
-  showBalancedControls();
+  setCustomTuning(pending?.tuning ?? (preset ? preset.tuning : savedTuning));
+  showCustomControls();
   ui.playlist.value = source ?? (directStart ? "" : storage.get("source") ?? "");
   ui["client-id"].value = storage.get("client-id") ?? "";
   if (preset) {

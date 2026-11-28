@@ -11,6 +11,14 @@ export const modes = Object.freeze({
   balanced: "Balanced"
 });
 
+export function normalizeBalancedTuning(tuning) {
+  const { focus, variation } = tuning ?? {};
+  return {
+    focus: Number.isInteger(focus) && focus >= -10 && focus <= 10 ? focus : 0,
+    variation: Number.isInteger(variation) && variation >= 0 && variation <= 10 ? variation : 5
+  };
+}
+
 let defaults;
 async function getDefaults() {
   if (!defaults) {
@@ -21,7 +29,7 @@ async function getDefaults() {
   return defaults;
 }
 
-export async function shuffleUris(tracks, mode) {
+export async function shuffleUris(tracks, mode, tuning) {
   validation.validateTracks(tracks);
   let result;
   switch (mode) {
@@ -34,9 +42,20 @@ export async function shuffleUris(tracks, mode) {
     case "album":
       result = album.shuffle(tracks, await getDefaults(), common);
       break;
-    case "balanced":
-      result = balanced.shuffle(tracks, await getDefaults(), common, artist, album).tracks;
+    case "balanced": {
+      const config = await getDefaults();
+      const { focus, variation } = normalizeBalancedTuning(tuning);
+      const artistWeight = config.balanced_artist_weight;
+      const albumWeight = config.balanced_album_weight;
+      const shift = focus / 10 * (focus < 0 ? albumWeight : artistWeight);
+      result = balanced.shuffle(tracks, {
+        ...config,
+        balanced_artist_weight: artistWeight - shift,
+        balanced_album_weight: albumWeight + shift,
+        balanced_randomness: config.balanced_randomness * variation / 5
+      }, common, artist, album).tracks;
       break;
+    }
     default:
       throw new Error("Unbekannter Shuffle-Modus.");
   }

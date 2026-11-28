@@ -15,6 +15,12 @@ Wenn Spotify auf keinem Gerät die Wiedergabe annimmt, kannst du die vorbereitet
 
 Die Web-App speichert Client-ID, Tokens, zuletzt verwendete Quelle und die ID der Wiedergabeliste im Browserspeicher. Beim Ablauf des Access-Tokens wird die Verbindung automatisch erneuert. Wenn Spotify den Refresh-Token nicht mehr akzeptiert, kannst du Spotify erneut verbinden. **Spotify-Verbindung trennen** löscht die lokal gespeicherten Tokens.
 
+## Balanced einstellen
+
+Im Modus **Balanced** kannst du unter **Balanced einstellen** Artist oder Album stärker gewichten und die Variation bei der Titelauswahl anpassen. Die Gewichtung beeinflusst, welche Wiederholungen der Shuffle stärker vermeidet. Sie garantiert keinen Mindestabstand zwischen Titeln desselben Artists oder Albums.
+
+**Standardwerte wiederherstellen** setzt beide Regler auf die bisherigen Balanced-Werte. Die App merkt sich die zuletzt beim Mischen verwendeten Balanced-Einstellungen. Speichere einen **Startlink** im Modus Balanced, um die aktuelle Einstellung mit diesem Preset zu speichern. Ältere Presets ohne eigene Reglerwerte verwenden weiterhin die Standardwerte.
+
 ## Optionaler Start über iOS
 
 Du kannst die Web-App als Lesezeichen oder Home-Bildschirm-Symbol hinzufügen. Für einen Kurzbefehl genügt die Aktion **URLs öffnen** mit der Adresse der Web-App. Dieselbe URL kannst du nach einem Update weiterverwenden.

@@ -6,8 +6,9 @@ const messages = {
   sourcePlaylist: ["Source playlist", "Quellplaylist"],
   playlistPlaceholder: ["Spotify link, URI, or playlist ID", "Spotify-Link, URI oder Playlist-ID"],
   shuffleMode: ["Shuffle mode", "Shuffle-Modus"],
+  // Older cached app bundles still render Custom as a selectable mode.
   modeCustom: ["Custom", "Benutzerdefiniert"],
-  customTitle: ["Custom shuffle settings", "Benutzerdefinierten Shuffle einstellen"],
+  customTitle: ["Customize Balanced", "Balanced anpassen"],
   customFocus: ["Emphasis: Artist ↔ Album", "Gewichtung: Artist ↔ Album"],
   customFocusHint: ["Move left for more emphasis on artists or right for albums. The middle uses the Balanced defaults.", "Links zählt Artist stärker, rechts Album. Die Mitte entspricht dem Balanced-Standard."],
   customVariation: ["Variation in track selection", "Variation bei der Titelauswahl"],

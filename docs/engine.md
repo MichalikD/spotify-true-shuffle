@@ -6,8 +6,7 @@
 - **Artist** scores candidates based on the distance and overall distribution of repeated artists.
 - **Album** applies a similar approach to albums.
 - **Balanced** considers both artist and album distribution using the default weights.
-- **Custom** applies the same algorithm with the selected settings.
 
-All modes use randomness. Artist, Album, Balanced, and Custom try to spread repeats, but playlists dominated by a few artists or albums can still contain adjacent repeats. The defaults are in `web/engine/defaults.json`. Custom shifts emphasis between artists and albums while keeping the total weight fixed. Its variation slider scales the random component of candidate scoring. The midpoint of both sliders matches Balanced.
+All modes use randomness. Artist, Album, and Balanced try to spread repeats, but playlists dominated by a few artists or albums can still contain adjacent repeats. The defaults are in `web/engine/defaults.json`. The optional Balanced settings shift emphasis between artists and albums while keeping the total weight fixed. The variation slider scales the random component of candidate scoring. The midpoint of both sliders matches the Balanced defaults.
 
 `web/playlists.mjs` reads playlists a page at a time and writes the result to the playback playlist in batches. The app starts playback once every batch has been written successfully.

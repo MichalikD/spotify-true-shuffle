@@ -10,11 +10,10 @@ export const modes = Object.freeze({
   random: "Random",
   artist: "Artist",
   album: "Album",
-  balanced: "Balanced",
-  custom: "Custom"
+  balanced: "Balanced"
 });
 
-export function normalizeCustomTuning(tuning) {
+export function normalizeBalancedTuning(tuning) {
   const { focus, variation } = tuning ?? {};
   return {
     focus: Number.isInteger(focus) && focus >= -10 && focus <= 10 ? focus : 0,
@@ -45,12 +44,9 @@ export async function shuffleUris(tracks, mode, tuning) {
     case "album":
       result = album.shuffle(tracks, await getDefaults(), common);
       break;
-    case "balanced":
-      result = balanced.shuffle(tracks, await getDefaults(), common, artist, album).tracks;
-      break;
-    case "custom": {
+    case "balanced": {
       const config = await getDefaults();
-      const { focus, variation } = normalizeCustomTuning(tuning);
+      const { focus, variation } = normalizeBalancedTuning(tuning);
       const artistWeight = config.balanced_artist_weight;
       const albumWeight = config.balanced_album_weight;
       const shift = focus / 10 * (focus < 0 ? albumWeight : artistWeight);

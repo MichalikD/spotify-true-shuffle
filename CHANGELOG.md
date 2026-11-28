@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Use shared artist spacing, album spacing, and randomness controls for every template. Save the exact values in new start links and retain the behavior of older saved links.
+
 - Add template-specific tuning for Random, Artist, and Album.
 - Use shuffle modes as templates and store optional Balanced overrides with start links.
 - Add English and German language selection and translate project documentation into English.

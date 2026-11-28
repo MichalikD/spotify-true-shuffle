@@ -54,3 +54,13 @@ export {
   getConfigNumber,
   getConfigBoolean
 };
+
+export function shuffleSections(tracks, intensity) {
+  if (intensity === 10) return fisherYates(tracks);
+  const blockSize = 1 + Math.floor((tracks.length - 1) * intensity / 10);
+  const result = [];
+  for (let offset = 0; offset < tracks.length; offset += blockSize) {
+    for (const track of fisherYates(tracks.slice(offset, offset + blockSize))) result.push(track);
+  }
+  return result;
+}

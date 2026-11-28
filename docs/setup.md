@@ -17,22 +17,24 @@ The app stores the Client ID, tokens, last source, and playback playlist ID in t
 
 ## Shuffle templates
 
-Each mode starts with its own defaults. Open **Customize template** to adjust the selected mode.
+All templates use the same three sliders from 0 to 10. Open **Customize template** to change their starting values.
 
-| Template | Settings |
-| --- | --- |
-| Random | Shuffle intensity. Lower values mix smaller sections of the original order. The maximum shuffles the entire playlist. |
-| Artist | Nearby artist repeat penalties and variation in track selection. |
-| Album | Nearby album repeat penalties and variation in track selection. |
-| Balanced | Artist or album emphasis and variation in track selection. |
+| Template | Artist spacing | Album spacing | Randomness |
+| --- | ---: | ---: | ---: |
+| Random | 0 | 0 | 10 |
+| Artist | 10 | 0 | 5 |
+| Album | 0 | 10 | 5 |
+| Balanced | 5 | 4 | 5 |
 
-**Reset to defaults** restores the selected template. Switching modes also restores defaults. Save a start link to reuse the playlist, template, and changed settings. Older Custom and Balanced presets keep their settings under the same URLs. The repeat controls change scoring preferences. The playlist's composition still affects how far apart repeats can be.
+Higher spacing values favor more distance between tracks by the same artist or from the same album. With both spacing sliders at zero, randomness at 0 keeps the source order, intermediate values shuffle sections, and 10 shuffles the whole playlist.
+
+**Reset to defaults** and choosing a different template load that template's starting values. New start links save all three values with the playlist. Existing saved links still use their original settings. Their sliders show an estimate, which you can edit or save under the same name to switch the link to the shared settings.
 
 ## Optional iOS shortcut
 
 Open the app from a bookmark, a Home Screen icon or the **Open URLs** shortcut action. The URL can stay the same when the app is updated.
 
-- `?playlist=PLAYLIST_ID&mode=balanced` preselects a source and mode. Supported mode IDs are `random`, `artist`, `album`, and `balanced`. Existing `mode=custom` links still work as an alias for adjusted Balanced. Without a mode in the URL, the app uses the last mode.
+- `?playlist=PLAYLIST_ID&mode=balanced` preselects a source and template. Supported mode IDs are `random`, `artist`, `album`, and `balanced`. Existing `mode=custom` links still work as an alias for adjusted Balanced. Without a mode in the URL, the app uses the last template.
 - `?playlist=PLAYLIST_ID&autostart=1` starts a one-off shuffle with the last mode, or Balanced on first use. Add `&mode=balanced` to always use Balanced. A full playlist link also works as the `playlist` value. URL-encode it in the shortcut so Spotify's query parameters remain part of the playlist link.
 - `?preset=car` opens a saved preset. Add `&mode=artist` to use the Artist template defaults for that run. An explicit mode uses its defaults, except for the legacy `mode=custom` alias. The preset still supplies the playlist and its auto-start setting.
 

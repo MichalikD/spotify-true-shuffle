@@ -1,9 +1,9 @@
-import { LocalizedError } from "./i18n.mjs?v=4";
+import { LocalizedError } from "./i18n.mjs?v=5";
 import * as common from "./engine/common.mjs?v=2";
 import * as artist from "./engine/artist.mjs";
 import * as album from "./engine/album.mjs";
 import * as balanced from "./engine/balanced.mjs?v=2";
-import * as validation from "./engine/validation.mjs?v=5";
+import * as validation from "./engine/validation.mjs?v=6";
 
 export const controls = {
   artistSpacing: { label: "artistSpacing", hint: "artistSpacingHint" },

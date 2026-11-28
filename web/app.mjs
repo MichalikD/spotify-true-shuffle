@@ -1,9 +1,9 @@
-import { LocalizedError, setLanguage, t } from "./i18n.mjs?v=4";
-import { controls, resolveSettings, settingsFromLegacy, shuffleUris, templates } from "./engine.mjs?v=9";
+import { LocalizedError, setLanguage, t } from "./i18n.mjs?v=5";
+import { controls, resolveSettings, settingsFromLegacy, shuffleUris, templates } from "./engine.mjs?v=10";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache
-} from "./spotify.mjs?v=5";
+} from "./spotify.mjs?v=6";
 
 const ui = Object.fromEntries(
   ["language", "setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
@@ -150,26 +150,31 @@ function updateSourceLink() {
 
 ui.playlist.addEventListener("input", updateSourceLink);
 
+async function readPlaybackPlaylist(id, fields) {
+  try {
+    return await api("playlists/" + id + "?fields=" + fields);
+  } catch (error) {
+    if (error instanceof SpotifyError && error.status === 404) {
+      throw new LocalizedError("inPlaceUnavailable");
+    }
+    throw error;
+  }
+}
+
 async function shuffle(inPlace) {
   const sourceInput = playlistId(ui.playlist.value);
   if (!inPlace && !sourceInput) throw new LocalizedError("invalidSource");
 
   const { profile, cacheKey } = await getCacheSettings();
   let cacheId = storage.get(cacheKey);
-  let snapshot;
+  let playbackPlaylist;
   if (inPlace) {
     if (!cacheId) throw new LocalizedError("missingInPlaceDestination");
-    const metadataPath = "playlists/" + cacheId + "?fields=name,owner(id),snapshot_id";
-    const playlist = await api(metadataPath);
-    if (!profile.id || playlist?.owner?.id !== profile.id) {
+    showCache(cacheId);
+    playbackPlaylist = await readPlaybackPlaylist(cacheId, "name,owner(id),snapshot_id");
+    if (!profile.id || playbackPlaylist?.owner?.id !== profile.id) {
       throw new LocalizedError("notYourDestination");
     }
-    showCache(cacheId);
-    if (!window.confirm(t("confirmShuffleInPlace", playlist.name || cacheId))) {
-      setStatus("shuffleCancelled");
-      return;
-    }
-    snapshot = playlist.snapshot_id;
   } else if (cacheId === sourceInput) {
     throw new LocalizedError("sameAsDestination");
   }
@@ -180,19 +185,26 @@ async function shuffle(inPlace) {
   try {
     tracks = await loadTracks(sourceId, { requireAllTracks: inPlace });
   } catch (error) {
-    if (!inPlace && error instanceof SpotifyError && error.status === 403) {
+    if (!(error instanceof SpotifyError)) throw error;
+    if (inPlace && error.status === 404) throw new LocalizedError("inPlaceUnavailable");
+    if (!inPlace && [403, 404].includes(error.status)) {
       ui["foreign-playlists"].open = true;
-      throw new LocalizedError("sourceDenied");
+      throw new LocalizedError(error.status === 404 ? "sourceUnavailable" : "sourceDenied");
     }
     throw error;
   }
-  if (!tracks.length) throw new LocalizedError("emptyPlaylist");
+  if (!tracks.length) throw new LocalizedError(inPlace ? "inPlaceEmpty" : "emptyPlaylist");
+  if (inPlace && !window.confirm(t("confirmShuffleInPlace", playbackPlaylist.name || cacheId))) {
+    setStatus("shuffleCancelled");
+    return;
+  }
   if (!inPlace) storage.set("source", sourceId);
   storage.set("mode", ui.mode.value);
   const shuffled = await shuffleUris(tracks, currentSettings(), activeLegacy);
 
-  if (inPlace && snapshot) {
-    const current = await api("playlists/" + cacheId + "?fields=snapshot_id");
+  const snapshot = playbackPlaylist?.snapshot_id;
+  if (snapshot) {
+    const current = await readPlaybackPlaylist(cacheId, "snapshot_id");
     if (current?.snapshot_id !== snapshot) throw new LocalizedError("playlistChanged");
   }
 
@@ -208,7 +220,14 @@ async function shuffle(inPlace) {
   }
 
   showCache(cacheId);
-  await writeCache(cacheId, shuffled);
+  try {
+    await writeCache(cacheId, shuffled);
+  } catch (error) {
+    if (error instanceof SpotifyError && error.status === 404) {
+      throw new LocalizedError("destinationWriteUnavailable");
+    }
+    throw error;
+  }
   try {
     await api("me/player/shuffle?state=false", { method: "PUT" });
     await api("me/player/play", {

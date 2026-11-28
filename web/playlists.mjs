@@ -1,4 +1,4 @@
-import { LocalizedError } from "./i18n.mjs?v=4";
+import { LocalizedError } from "./i18n.mjs?v=5";
 
 const playlistIdPattern = /^[a-zA-Z0-9]{22}$/;
 const trackUriPattern = /^spotify:track:[a-zA-Z0-9]{22}$/;

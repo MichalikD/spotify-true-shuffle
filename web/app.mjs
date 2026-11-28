@@ -1,4 +1,4 @@
-import { modes, shuffleUris } from "./engine.mjs?v=2";
+import { modes, normalizeBalancedTuning, shuffleUris } from "./engine.mjs?v=3";
 import {
   api, callbackUrl, completeSignIn, loadTracks, LoginRequired, playlistId,
   signIn, SpotifyError, storage, writeCache
@@ -6,7 +6,8 @@ import {
 
 const ui = Object.fromEntries(
   ["setup", "ready", "callback-url", "client-id", "login", "shuffle", "playlist",
-    "mode", "presets", "preset-links", "preset-form", "preset-name", "preset-autostart",
+    "mode", "balanced-controls", "balanced-focus", "balanced-variation", "balanced-reset",
+    "presets", "preset-links", "preset-form", "preset-name", "preset-autostart",
     "preset-result", "preset-url", "destination", "destination-playlist", "cache-link", "logout", "status"]
     .map(id => [id, document.getElementById(id)])
 );
@@ -15,7 +16,28 @@ const presetId = launch.searchParams.get("preset");
 const authReturn = launch.searchParams.has("code") || launch.searchParams.has("error");
 const pendingKey = "spotify-true-shuffle-web:pending-shuffle";
 const presetKey = "presets";
+const tuningKey = "balanced-tuning";
 let busy = false;
+
+function getBalancedTuning() {
+  return normalizeBalancedTuning({
+    focus: ui["balanced-focus"].valueAsNumber,
+    variation: ui["balanced-variation"].valueAsNumber
+  });
+}
+
+function setBalancedTuning(tuning) {
+  const { focus, variation } = normalizeBalancedTuning(tuning);
+  ui["balanced-focus"].value = focus;
+  ui["balanced-variation"].value = variation;
+}
+
+function showBalancedControls() {
+  ui["balanced-controls"].hidden = ui.mode.value !== "balanced";
+}
+
+ui.mode.addEventListener("change", showBalancedControls);
+ui["balanced-reset"].addEventListener("click", () => setBalancedTuning());
 
 function showConnection() {
   const connected = Boolean(storage.get("tokens"));
@@ -68,7 +90,9 @@ async function shuffle() {
   if (!tracks.length) throw new Error("Die Playlist enthält keine unterstützten Spotify-Titel.");
   storage.set("source", sourceId);
   storage.set("mode", mode);
-  const shuffled = await shuffleUris(tracks, mode);
+  const tuning = mode === "balanced" ? getBalancedTuning() : undefined;
+  if (tuning) storage.set(tuningKey, tuning);
+  const shuffled = await shuffleUris(tracks, mode, tuning);
 
   ui.status.textContent = "Wiedergabeliste wird geschrieben …";
   if (!cacheId) {
@@ -107,7 +131,8 @@ ui.login.addEventListener("submit", async event => {
     sessionStorage.setItem(pendingKey, JSON.stringify({
       source: playlistId(ui.playlist.value),
       mode: ui.mode.value,
-      preset: ui["preset-name"].value.trim().toLowerCase()
+      preset: ui["preset-name"].value.trim().toLowerCase(),
+      tuning: getBalancedTuning()
     }));
     await signIn(clientId);
   } catch (error) {
@@ -236,6 +261,7 @@ ui["preset-form"].addEventListener("submit", event => {
     return;
   }
   const preset = { name, source, mode: ui.mode.value, autostart: ui["preset-autostart"].checked };
+  if (preset.mode === "balanced") preset.tuning = getBalancedTuning();
   storage.set(presetKey, { ...storage.get(presetKey), [id]: preset });
   ui["preset-url"].value = presetUrl(id).href;
   ui["preset-result"].hidden = false;
@@ -275,6 +301,8 @@ async function initialize() {
   const mode = pending?.mode ?? requestedMode ?? preset?.mode ?? savedMode;
   for (const [id, label] of Object.entries(modes)) ui.mode.add(new Option(label, id));
   ui.mode.value = Object.hasOwn(modes, mode) ? mode : directStart ? "balanced" : "random";
+  setBalancedTuning(pending?.tuning ?? (preset ? preset.tuning : storage.get(tuningKey)));
+  showBalancedControls();
   ui.playlist.value = source ?? (directStart ? "" : storage.get("source") ?? "");
   ui["client-id"].value = storage.get("client-id") ?? "";
   if (preset) {

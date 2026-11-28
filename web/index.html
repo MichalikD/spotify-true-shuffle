@@ -6,8 +6,8 @@
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com; base-uri 'none'; form-action 'none'">
   <title>Spotify True Shuffle</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="app.mjs?v=3"></script>
+  <link rel="stylesheet" href="style.css?v=2">
+  <script type="module" src="app.mjs?v=4"></script>
 </head>
 <body>
   <main>
@@ -28,6 +28,15 @@
         <input id="playlist" placeholder="Spotify-Link, URI oder Playlist-ID" required autocomplete="off" autocapitalize="none" spellcheck="false">
         <label for="mode">Shuffle-Modus</label>
         <select id="mode"></select>
+        <details id="balanced-controls" hidden>
+          <summary>Balanced einstellen</summary>
+          <label for="balanced-focus">Gewichtung: Artist ↔ Album</label>
+          <input id="balanced-focus" type="range" min="-10" max="10" value="0" aria-describedby="balanced-focus-hint">
+          <small id="balanced-focus-hint">Links zählt Artist stärker, rechts Album. Die Mitte entspricht dem bisherigen Balanced-Modus.</small>
+          <label for="balanced-variation">Variation bei der Titelauswahl</label>
+          <input id="balanced-variation" type="range" min="0" max="10" value="5">
+          <button id="balanced-reset" type="button">Standardwerte wiederherstellen</button>
+        </details>
         <button type="submit">Mischen und abspielen</button>
       </form>
       <details id="presets">

@@ -7,6 +7,6 @@
 - **Album** wendet eine ähnliche Bewertung auf Alben an.
 - **Balanced** gewichtet Artist- und Albumverteilung gemeinsam.
 
-Alle Modi verwenden Zufall. Die bewerteten Modi versuchen, Wiederholungen zu verteilen. Bei einer Playlist, die von wenigen Artists oder Alben dominiert wird, können Wiederholungen direkt aufeinanderfolgen. Die Gewichte und Standardwerte liegen in `web/engine/defaults.json`.
+Alle Modi verwenden Zufall. Die bewerteten Modi versuchen, Wiederholungen zu verteilen. Bei einer Playlist, die von wenigen Artists oder Alben dominiert wird, können Wiederholungen direkt aufeinanderfolgen. Die Standardwerte liegen in `web/engine/defaults.json`. Der Balanced-Regler verschiebt Gewicht zwischen Artist und Album bei konstanter Summe. Der Variationsregler skaliert den Zufallsanteil der Kandidatenbewertung. Die Mitte beider Regler erhält die bisherigen Standardwerte.
 
 `web/playlists.mjs` liest Playlists seitenweise und schreibt das gemischte Ergebnis in Blöcken in die Wiedergabeliste. Die App beginnt die Wiedergabe erst nach dem erfolgreichen Schreiben aller Blöcke.

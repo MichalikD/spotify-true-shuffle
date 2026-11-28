@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add artist/album emphasis and variation controls to Balanced and save them with start links.
+
 - Allow a direct shuffle from a Spotify playlist URL or ID without saving a preset.
 
 - Focus the repository on the GitHub Pages app and its iOS start links.
